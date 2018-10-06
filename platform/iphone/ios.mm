@@ -30,8 +30,8 @@
 
 #include "ios.h"
 
-#import <UIKit/UIKit.h>
 #import <StoreKit/StoreKit.h>
+#import <UIKit/UIKit.h>
 
 void iOS::_bind_methods() {
 
@@ -52,8 +52,8 @@ void iOS::alert(const char *p_alert, const char *p_title) {
 
 	// Finally present the alert
 	[[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:controller
-																			  animated:YES
-																			completion:nil];
+																				 animated:YES
+																			   completion:nil];
 }
 
 String iOS::get_rate_url(int p_app_id) const {
@@ -66,8 +66,6 @@ String iOS::get_rate_url(int p_app_id) const {
 void iOS::show_store_rating_ui() {
 	[SKStoreReviewController requestReview];
 }
-
-extern "C" {
 
 int add_path(int p_argc, char **p_args) {
 
@@ -117,6 +115,5 @@ Error _shell_open(String p_uri) {
 void _set_keep_screen_on(bool p_enabled) {
 	[[UIApplication sharedApplication] setIdleTimerDisabled:(BOOL)p_enabled];
 }
-}; // extern "C"
 
 iOS::iOS(){};
