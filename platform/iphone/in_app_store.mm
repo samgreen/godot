@@ -30,7 +30,7 @@
 
 #ifdef STOREKIT_ENABLED
 
-#include "in_app_store.h"
+#import "in_app_store.h"
 
 extern "C" {
 #import <Foundation/Foundation.h>

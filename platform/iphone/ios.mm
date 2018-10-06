@@ -101,6 +101,22 @@ int add_cmdline(int p_argc, char **p_args) {
 
 	return p_argc;
 };
+
+Error _shell_open(String p_uri) {
+	NSString *url = [[NSString alloc] initWithUTF8String:p_uri.utf8().get_data()];
+
+	if (![[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:url]])
+		return ERR_CANT_OPEN;
+
+	printf("opening url %ls\n", p_uri.c_str());
+	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
+	[url release];
+	return OK;
+}
+
+void _set_keep_screen_on(bool p_enabled) {
+	[[UIApplication sharedApplication] setIdleTimerDisabled:(BOOL)p_enabled];
+}
 }; // extern "C"
 
 iOS::iOS(){};
