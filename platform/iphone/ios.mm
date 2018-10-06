@@ -67,4 +67,40 @@ void iOS::show_store_rating_ui() {
 	[SKStoreReviewController requestReview];
 }
 
+extern "C" {
+
+int add_path(int p_argc, char **p_args) {
+
+	NSString *str = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"godot_path"];
+	if (!str)
+		return p_argc;
+
+	p_args[p_argc++] = (char *)"--path";
+	p_args[p_argc++] = (char *)[[str copy] cStringUsingEncoding:NSUTF8StringEncoding];
+	p_args[p_argc] = NULL;
+
+	return p_argc;
+};
+
+int add_cmdline(int p_argc, char **p_args) {
+
+	NSArray *arr = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"godot_cmdline"];
+	if (!arr)
+		return p_argc;
+
+	for (id value in arr) {
+
+		NSString *string = value;
+		if (![string isKindOfClass:NSString.class])
+			continue;
+
+		p_args[p_argc++] = (char *)[[string copy] cStringUsingEncoding:NSUTF8StringEncoding];
+	};
+
+	p_args[p_argc] = NULL;
+
+	return p_argc;
+};
+}; // extern "C"
+
 iOS::iOS(){};
