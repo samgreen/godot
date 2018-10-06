@@ -27,8 +27,8 @@ void _ios_add_joystick(GCController *controller, AppDelegate *delegate) {
 }
 
 - (instancetype)init {
-    self = [super init];
-    if (self) {
+	self = [super init];
+	if (self) {
 		self.gamepadById = [NSMutableDictionary dictionary];
 		self.gamepads = [NSMutableArray arrayWithCapacity:5];
 		self.pendingGamepads = [NSMutableArray arrayWithCapacity:3];
@@ -37,17 +37,17 @@ void _ios_add_joystick(GCController *controller, AppDelegate *delegate) {
 		// connected controllers
 		[[NSNotificationCenter defaultCenter]
 				addObserver:self
-				selector:@selector(controllerWasConnected:)
-					name:GCControllerDidConnectNotification
-					object:nil];
+				   selector:@selector(controllerWasConnected:)
+					   name:GCControllerDidConnectNotification
+					 object:nil];
 
 		[[NSNotificationCenter defaultCenter]
 				addObserver:self
-				selector:@selector(controllerWasDisconnected:)
-					name:GCControllerDidDisconnectNotification
-					object:nil];
-    }
-    return self;
+				   selector:@selector(controllerWasDisconnected:)
+					   name:GCControllerDidDisconnectNotification
+					 object:nil];
+	}
+	return self;
 }
 
 - (void)dealloc {

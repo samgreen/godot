@@ -8,4 +8,6 @@ void _ios_add_joystick(GCController *controller, AppDelegate *delegate);
 
 @property(nonatomic, getter=isReady) BOOL ready;
 
++ (instancetype)sharedManager;
+
 @end

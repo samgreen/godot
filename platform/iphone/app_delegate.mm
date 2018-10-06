@@ -30,7 +30,6 @@
 
 #import "app_delegate.h"
 #import "gamepad_iphone.h"
-#import "gl_view.h"
 #import "view_controller.h"
 #import <CoreMotion/CoreMotion.h>
 
@@ -263,11 +262,6 @@ static int frame_count = 0;
 	// Create a full-screen window
 	CGRect rect = [[UIScreen mainScreen] bounds];
 	self.window = [[UIWindow alloc] initWithFrame:rect];
-
-	// Create our engine view controller
-	UIViewController *rootVC = [[ViewController alloc] init];
-	self.window.rootViewController = rootVC;
-
 	// Show the window
 	[self.window makeKeyAndVisible];
 
@@ -283,6 +277,10 @@ static int frame_count = 0;
 	};
 
 	_set_keep_screen_on(bool(GLOBAL_DEF("display/window/energy_saving/keep_screen_on", true)) ? YES : NO);
+
+	// Create our engine view controller
+	UIViewController *rootVC = [[ViewController alloc] init];
+	self.window.rootViewController = rootVC;
 
 	GLView *glView = rootVC.view;
 	glView.delegate = self;
@@ -301,8 +299,8 @@ static int frame_count = 0;
 			[motionManager startDeviceMotionUpdatesUsingReferenceFrame:
 								   CMAttitudeReferenceFrameXMagneticNorthZVertical];
 			motionInitialised = YES;
-		};
-	};
+		}
+	}
 
 	[[NSNotificationCenter defaultCenter]
 			addObserver:self
@@ -326,12 +324,7 @@ static int frame_count = 0;
 			[self toggleFocus:YES];
 		}
 	}
-};
-
-- (void)applicationWillTerminate:(UIApplication *)application {
-	// We don't need to do any clean up here as the OS will jettison our application
-	// in the next few moments
-};
+}
 
 // When application goes to background (e.g. user switches to another app or presses Home),
 // then applicationWillResignActive -> applicationDidEnterBackground are called.
