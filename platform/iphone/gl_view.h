@@ -54,8 +54,8 @@
 	CADisplayLink *_displayLink;
 
 	// An animation timer that, when animation is started, will periodically call -drawView at the given rate.
-	// Only used if CADisplayLink is not
 	NSTimer *animationTimer;
+	// I'd like to remove the above as an option
 }
 
 @property(nonatomic, assign) id<GLViewDelegate> delegate;
