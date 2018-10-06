@@ -31,10 +31,12 @@
 #include "ios.h"
 
 #import <UIKit/UIKit.h>
+#import <StoreKit/StoreKit.h>
 
 void iOS::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_rate_url", "app_id"), &iOS::get_rate_url);
+	ClassDB::bind_method(D_METHOD("show_store_rating_ui"), &iOS::show_store_rating_ui);
 };
 
 void iOS::alert(const char *p_alert, const char *p_title) {
@@ -76,5 +78,9 @@ String iOS::get_rate_url(int p_app_id) const {
 	printf("returning rate url %ls\n", ret.c_str());
 	return ret;
 };
+
+void iOS::show_store_rating_ui() {
+	[SKStoreReviewController requestReview];
+}
 
 iOS::iOS(){};
