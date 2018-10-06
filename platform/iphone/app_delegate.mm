@@ -53,17 +53,15 @@ extern OS::VideoMode _get_video_mode();
 CMMotionManager *motionManager;
 bool motionInitialised;
 
-static int frame_count = 0;
 - (void)drawView:(GLView *)view {
-	printf("AppDelegate - frame count: %d", frame_count);
-
+	static int frame_count = 0;
 	switch (frame_count) {
 		case 0: {
-			OS::get_singleton()->set_video_mode(_get_video_mode());
-
 			if (!OS::get_singleton()) {
 				exit(0);
 			}
+
+			OS::get_singleton()->set_video_mode(_get_video_mode());
 			++frame_count;
 
 			NSString *locale_code = [[NSLocale currentLocale] localeIdentifier];
