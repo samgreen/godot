@@ -71,25 +71,21 @@
 	float screen_scale;
 }
 
-@property(nonatomic, assign) id<GLViewDelegate> delegate;
+@property (nonatomic, assign) id<GLViewDelegate> delegate;
 
 // AVPlayer-related properties
-@property(strong, nonatomic) AVAsset *avAsset;
-@property(strong, nonatomic) AVPlayerItem *avPlayerItem;
-@property(strong, nonatomic) AVPlayer *avPlayer;
-@property(strong, nonatomic) AVPlayerLayer *avPlayerLayer;
+@property (strong, nonatomic) AVAsset *avAsset;
+@property (strong, nonatomic) AVPlayerItem *avPlayerItem;
+@property (strong, nonatomic) AVPlayer *avPlayer;
+@property (strong, nonatomic) AVPlayerLayer *avPlayerLayer;
 
-// Old videoplayer properties
-@property(strong, nonatomic) MPMoviePlayerController *moviePlayerController;
-@property(strong, nonatomic) UIWindow *backgroundWindow;
-
-@property(nonatomic) UITextAutocorrectionType autocorrectionType;
+@property (nonatomic) UITextAutocorrectionType autocorrectionType;
+@property (assign) NSTimeInterval animationInterval;
+@property (nonatomic, assign) BOOL useCADisplayLink;
 
 - (void)startAnimation;
 - (void)stopAnimation;
 - (void)drawView;
-
-- (BOOL)canBecomeFirstResponder;
 
 - (void)open_keyboard;
 - (void)hide_keyboard;
@@ -97,16 +93,12 @@
 - (BOOL)hasText;
 - (void)insertText:(NSString *)p_text;
 
-- (id)initGLES;
 - (BOOL)createFramebuffer;
 - (void)destroyFramebuffer;
 
 - (void)audioRouteChangeListenerCallback:(NSNotification *)notification;
 - (void)keyboardOnScreen:(NSNotification *)notification;
 - (void)keyboardHidden:(NSNotification *)notification;
-
-@property NSTimeInterval animationInterval;
-@property(nonatomic, assign) BOOL useCADisplayLink;
 
 @end
 

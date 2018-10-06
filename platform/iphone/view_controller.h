@@ -30,15 +30,10 @@
 
 #import <GameKit/GameKit.h>
 #import <UIKit/UIKit.h>
+#import "gl_view.h"
 
-@interface ViewController : UIViewController <GKGameCenterControllerDelegate> {
-};
+@interface ViewController : UIViewController <GKGameCenterControllerDelegate>
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:
-		(UIInterfaceOrientation)p_orientation;
-
-- (void)didReceiveMemoryWarning;
-
-- (BOOL)prefersStatusBarHidden;
+@property (nonatomic, strong) GLView *view;
 
 @end

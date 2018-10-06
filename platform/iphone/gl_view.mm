@@ -38,15 +38,6 @@
 #import <OpenGLES/EAGLDrawable.h>
 #import <QuartzCore/QuartzCore.h>
 
-/*
-@interface GLView (private)
-
-- (id)initGLES;
-- (BOOL)createFramebuffer;
-- (void)destroyFramebuffer;
-@end
-*/
-
 bool gles3_available = true;
 int gl_view_base_fb;
 static String keyboard_text;
@@ -103,13 +94,12 @@ bool _play_video(String p_path, float p_volume, String p_audio_track, String p_s
 	_instance.avPlayerLayer = [AVPlayerLayer playerLayerWithPlayer:_instance.avPlayer];
 
 	[_instance.avPlayer addObserver:_instance forKeyPath:@"status" options:0 context:nil];
-	[[NSNotificationCenter defaultCenter]
-			addObserver:_instance
-			   selector:@selector(playerItemDidReachEnd:)
-				   name:AVPlayerItemDidPlayToEndTimeNotification
-				 object:[_instance.avPlayer currentItem]];
-
 	[_instance.avPlayer addObserver:_instance forKeyPath:@"rate" options:NSKeyValueObservingOptionNew context:0];
+	[[NSNotificationCenter defaultCenter]
+		addObserver:_instance
+			selector:@selector(playerItemDidReachEnd:)
+				name:AVPlayerItemDidPlayToEndTimeNotification
+				object:[_instance.avPlayer currentItem]];
 
 	[_instance.avPlayerLayer setFrame:_instance.bounds];
 	[_instance.layer addSublayer:_instance.avPlayerLayer];
@@ -175,7 +165,6 @@ void _focus_out_video() {
 };
 
 void _unpause_video() {
-
 	[_instance.avPlayer play];
 	video_playing = true;
 };
@@ -200,62 +189,15 @@ CGFloat _points_to_pixels(CGFloat points) {
 	return (points / pointsPerInch * pixelPerInch);
 }
 
+@interface GLView ()
+
+@property (nonatomic, strong) NSMutableArray *activeTouches;
+
+@end
+
 @implementation GLView
 
 @synthesize animationInterval;
-
-static const int max_touches = 8;
-static UITouch *touches[max_touches];
-
-static void init_touches() {
-
-	for (int i = 0; i < max_touches; i++) {
-		touches[i] = NULL;
-	};
-};
-
-static int get_touch_id(UITouch *p_touch) {
-
-	int first = -1;
-	for (int i = 0; i < max_touches; i++) {
-		if (first == -1 && touches[i] == NULL) {
-			first = i;
-			continue;
-		};
-		if (touches[i] == p_touch)
-			return i;
-	};
-
-	if (first != -1) {
-		touches[first] = p_touch;
-		return first;
-	};
-
-	return -1;
-};
-
-static int remove_touch(UITouch *p_touch) {
-
-	int remaining = 0;
-	for (int i = 0; i < max_touches; i++) {
-
-		if (touches[i] == NULL)
-			continue;
-		if (touches[i] == p_touch)
-			touches[i] = NULL;
-		else
-			++remaining;
-	};
-	return remaining;
-};
-
-static void clear_touches() {
-
-	for (int i = 0; i < max_touches; i++) {
-
-		touches[i] = NULL;
-	};
-};
 
 // Implement this to override the default layer class (which is [CALayer class]).
 // We do this so that our view will be backed by a layer that is capable of OpenGL ES rendering.
@@ -265,14 +207,26 @@ static void clear_touches() {
 
 //The GL view is stored in the nib file. When it's unarchived it's sent -initWithCoder:
 - (id)initWithCoder:(NSCoder *)coder {
-	active = FALSE;
-	if ((self = [super initWithCoder:coder])) {
-		self = [self initGLES];
+	if (self = [super initWithCoder:coder]) {
+		[self setUp];
 	}
 	return self;
 }
 
-- (id)initGLES {
+- (id)initWithFrame:(CGRect)frame {
+	if (self = [super initWithFrame:frame]) {
+		[self setUp];
+	}
+	return self;
+}
+
+- (void)setUp {
+	_instance = self;
+
+	self.activeTouches = [[NSMutableArray alloc] initWithCapacity:10];
+
+	active = NO;
+
 	// Get our backing layer
 	CAEAGLLayer *eaglLayer = (CAEAGLLayer *)self.layer;
 
@@ -299,7 +253,42 @@ static void clear_touches() {
 
 	// Default the animation interval to 1/60th of a second.
 	animationInterval = 1.0 / 60.0;
-	return self;
+
+	self.multipleTouchEnabled = YES;
+	self.autocorrectionType = UITextAutocorrectionTypeNo;
+
+	printf("******** adding observer for sound routing changes\n");
+	[[NSNotificationCenter defaultCenter]
+			addObserver:self
+			selector:@selector(audioRouteChangeListenerCallback:)
+				name:AVAudioSessionRouteChangeNotification
+				object:nil];
+
+	printf("******** adding observer for keyboard show/hide\n");
+	[[NSNotificationCenter defaultCenter]
+			addObserver:self
+			selector:@selector(keyboardOnScreen:)
+				name:UIKeyboardDidShowNotification
+				object:nil];
+	[[NSNotificationCenter defaultCenter]
+			addObserver:self
+			selector:@selector(keyboardHidden:)
+				name:UIKeyboardDidHideNotification
+				object:nil];
+}
+
+// Stop animating and release resources when they are no longer needed.
+- (void)dealloc {
+	[self stopAnimation];
+
+	if ([EAGLContext currentContext] == context) {
+		[EAGLContext setCurrentContext:nil];
+	}
+
+	[context release];
+	context = nil;
+
+	[super dealloc];
 }
 
 - (id<GLViewDelegate>)delegate {
@@ -309,7 +298,6 @@ static void clear_touches() {
 // Update the delegate, and if it needs a -setupView: call, set our internal flag so that it will be called.
 - (void)setDelegate:(id<GLViewDelegate>)d {
 	delegate = d;
-	delegateSetup = ![delegate respondsToSelector:@selector(setupView:)];
 }
 
 @synthesize useCADisplayLink;
@@ -387,21 +375,27 @@ static void clear_touches() {
 - (void)startAnimation {
 	if (active)
 		return;
-	active = TRUE;
+
+	active = YES;
+
 	printf("start animation!\n");
 	if (useCADisplayLink) {
+		displayLink = [CADisplayLink displayLinkWithTarget:self 
+												  selector:@selector(drawView)];
 
-		// Approximate frame rate
-		// assumes device refreshes at 60 fps
-		int frameInterval = (int)floor(animationInterval * 60.0f);
-
-		displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(drawView)];
-		[displayLink setFrameInterval:frameInterval];
+		// Approximate frame rate: assumes device refreshes at 60 fps. 
+		// Note that newer iOS devices are 120Hz screens
+		displayLink.frameInterval = (int)floor(animationInterval * 60.0f);
 
 		// Setup DisplayLink in main thread
-		[displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+		[displayLink addToRunLoop:[NSRunLoop currentRunLoop] 
+						  forMode:NSRunLoopCommonModes];
 	} else {
-		animationTimer = [NSTimer scheduledTimerWithTimeInterval:animationInterval target:self selector:@selector(drawView) userInfo:nil repeats:YES];
+		animationTimer = [NSTimer scheduledTimerWithTimeInterval:animationInterval 
+														  target:self 
+														selector:@selector(drawView) 
+														userInfo:nil 
+														repeats:YES];
 	}
 
 	if (video_playing) {
@@ -412,7 +406,8 @@ static void clear_touches() {
 - (void)stopAnimation {
 	if (!active)
 		return;
-	active = FALSE;
+
+	active = NO;
 	printf("******** stop animation!\n");
 
 	if (useCADisplayLink) {
@@ -422,8 +417,6 @@ static void clear_touches() {
 		[animationTimer invalidate];
 		animationTimer = nil;
 	}
-
-	clear_touches();
 
 	if (video_playing) {
 		// save position
@@ -455,13 +448,13 @@ static void clear_touches() {
 	if (!active) {
 		printf("draw view not active!\n");
 		return;
-	};
+	}
 
 	// Make sure that you are drawing to the current context
 	[EAGLContext setCurrentContext:context];
 
 	// If our drawing delegate needs to have the view setup, then call -setupView: and flag that it won't need to be called again.
-	if (!delegateSetup) {
+	if ([self.delegate respondsToSelector:@selector(setupView:)] && !delegateSetup) {
 		[delegate setupView:self];
 		delegateSetup = YES;
 	}
@@ -476,92 +469,65 @@ static void clear_touches() {
 #ifdef DEBUG_ENABLED
 	GLenum err = glGetError();
 	if (err)
-		NSLog(@"%x error", err);
+		NSLog(@"%x (gl) error", err);
 #endif
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-	NSArray *tlist = [[event allTouches] allObjects];
-	for (unsigned int i = 0; i < [tlist count]; i++) {
+	UITouch *touch = [touches anyObject];
+	
+	[self.activeTouches addObject:touch];
 
-		if ([touches containsObject:[tlist objectAtIndex:i]]) {
-
-			UITouch *touch = [tlist objectAtIndex:i];
-			if (touch.phase != UITouchPhaseBegan)
-				continue;
-			int tid = get_touch_id(touch);
-			ERR_FAIL_COND(tid == -1);
-			CGPoint touchPoint = [touch locationInView:self];
-			OSIPhone::get_singleton()->touch_press(tid, touchPoint.x * self.contentScaleFactor, touchPoint.y * self.contentScaleFactor, true, touch.tapCount > 1);
-		};
-	};
+	CGPoint touchPoint = [self scaledPoint:[touch locationInView:self]];
+	OSIPhone::get_singleton()->touch_press([self.activeTouches indexOfObject:touch], touchPoint.x, touchPoint.y, true, touch.tapCount > 1);
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+	UITouch *touch = [touches anyObject];
 
-	NSArray *tlist = [[event allTouches] allObjects];
-	for (unsigned int i = 0; i < [tlist count]; i++) {
-
-		if ([touches containsObject:[tlist objectAtIndex:i]]) {
-
-			UITouch *touch = [tlist objectAtIndex:i];
-			if (touch.phase != UITouchPhaseMoved)
-				continue;
-			int tid = get_touch_id(touch);
-			ERR_FAIL_COND(tid == -1);
-			CGPoint touchPoint = [touch locationInView:self];
-			CGPoint prev_point = [touch previousLocationInView:self];
-			OSIPhone::get_singleton()->touch_drag(tid, prev_point.x * self.contentScaleFactor, prev_point.y * self.contentScaleFactor, touchPoint.x * self.contentScaleFactor, touchPoint.y * self.contentScaleFactor);
-		};
-	};
+	CGPoint touchPoint = [self scaledPoint:[touch locationInView:self]];
+	CGPoint previousPoint = [self scaledPoint:[touch previousLocationInView:self]];
+	OSIPhone::get_singleton()->touch_drag([self.activeTouches indexOfObject:touch], previousPoint.x, previousPoint.y, touchPoint.x, touchPoint.y);
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-	NSArray *tlist = [[event allTouches] allObjects];
-	for (unsigned int i = 0; i < [tlist count]; i++) {
+	UITouch *touch = [touches anyObject];
 
-		if ([touches containsObject:[tlist objectAtIndex:i]]) {
+	CGPoint touchPoint = [self scaledPoint:[touch locationInView:self]];
+	OSIPhone::get_singleton()->touch_press([self.activeTouches indexOfObject:touch], touchPoint.x * self.contentScaleFactor, touchPoint.y * self.contentScaleFactor, false, false);
 
-			UITouch *touch = [tlist objectAtIndex:i];
-			if (touch.phase != UITouchPhaseEnded)
-				continue;
-			int tid = get_touch_id(touch);
-			ERR_FAIL_COND(tid == -1);
-			remove_touch(touch);
-			CGPoint touchPoint = [touch locationInView:self];
-			OSIPhone::get_singleton()->touch_press(tid, touchPoint.x * self.contentScaleFactor, touchPoint.y * self.contentScaleFactor, false, false);
-		};
-	};
+	[self.activeTouches removeObject:touch];
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
+	UITouch *touch = [touches anyObject];
 
 	OSIPhone::get_singleton()->touches_cancelled();
-	clear_touches();
+
+	[self.activeTouches removeObject:touch];
 };
+
+- (CGPoint)scaledPoint:(CGPoint)point {
+	return CGPointMake(point.x * self.contentScaleFactor, point.y * self.contentScaleFactor);
+}
 
 - (BOOL)canBecomeFirstResponder {
 	return YES;
 };
 
 - (void)open_keyboard {
-	//keyboard_text = p_existing;
 	[self becomeFirstResponder];
 };
 
 - (void)hide_keyboard {
-	//keyboard_text = p_existing;
 	[self resignFirstResponder];
 };
 
 - (void)keyboardOnScreen:(NSNotification *)notification {
-	NSDictionary *info = notification.userInfo;
-	NSValue *value = info[UIKeyboardFrameEndUserInfoKey];
-
-	CGRect rawFrame = [value CGRectValue];
-	CGRect keyboardFrame = [self convertRect:rawFrame fromView:nil];
-
-	OSIPhone::get_singleton()->set_virtual_keyboard_height(_points_to_pixels(keyboardFrame.size.height));
+	NSValue *value = notification.userInfo[UIKeyboardFrameEndUserInfoKey];
+	CGRect frame = [value CGRectValue];
+	const CGFloat kScaledHeight = _points_to_pixels(frame.size.height);
+	OSIPhone::get_singleton()->set_virtual_keyboard_height(kScaledHeight);
 }
 
 - (void)keyboardHidden:(NSNotification *)notification {
@@ -618,68 +584,7 @@ static void clear_touches() {
 	}
 }
 
-// When created via code however, we get initWithFrame
-- (id)initWithFrame:(CGRect)frame {
-	self = [super initWithFrame:frame];
-	_instance = self;
-	printf("after init super %p\n", self);
-	if (self != nil) {
-		self = [self initGLES];
-		printf("after init gles %p\n", self);
-	}
-	init_touches();
-	self.multipleTouchEnabled = YES;
-	self.autocorrectionType = UITextAutocorrectionTypeNo;
-
-	printf("******** adding observer for sound routing changes\n");
-	[[NSNotificationCenter defaultCenter]
-			addObserver:self
-			   selector:@selector(audioRouteChangeListenerCallback:)
-				   name:AVAudioSessionRouteChangeNotification
-				 object:nil];
-
-	printf("******** adding observer for keyboard show/hide\n");
-	[[NSNotificationCenter defaultCenter]
-			addObserver:self
-			   selector:@selector(keyboardOnScreen:)
-				   name:UIKeyboardDidShowNotification
-				 object:nil];
-	[[NSNotificationCenter defaultCenter]
-			addObserver:self
-			   selector:@selector(keyboardHidden:)
-				   name:UIKeyboardDidHideNotification
-				 object:nil];
-
-	//self.autoresizesSubviews = YES;
-	//[self setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleWidth];
-
-	return self;
-}
-
-//- (BOOL)automaticallyForwardAppearanceAndRotationMethodsToChildViewControllers {
-//	return YES;
-//}
-
-//- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation{
-//	return YES;
-//}
-
-// Stop animating and release resources when they are no longer needed.
-- (void)dealloc {
-	[self stopAnimation];
-
-	if ([EAGLContext currentContext] == context) {
-		[EAGLContext setCurrentContext:nil];
-	}
-
-	[context release];
-	context = nil;
-
-	[super dealloc];
-}
-
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
-
 	if (object == _instance.avPlayerItem && [keyPath isEqualToString:@"status"]) {
 		if (_instance.avPlayerItem.status == AVPlayerStatusFailed || _instance.avPlayer.status == AVPlayerStatusFailed) {
 			_stop_video();
@@ -713,41 +618,5 @@ static void clear_touches() {
 - (void)playerItemDidReachEnd:(NSNotification *)notification {
 	_stop_video();
 }
-
-/*
-- (void)moviePlayBackDidFinish:(NSNotification*)notification {
-
-
-		NSNumber* reason = [[notification userInfo] objectForKey:MPMoviePlayerPlaybackDidFinishReasonUserInfoKey];
-		switch ([reason intValue]) {
-				case MPMovieFinishReasonPlaybackEnded:
-						//NSLog(@"Playback Ended");
-						break;
-				case MPMovieFinishReasonPlaybackError:
-						//NSLog(@"Playback Error");
-						video_found_error = true;
-						break;
-				case MPMovieFinishReasonUserExited:
-						//NSLog(@"User Exited");
-						video_found_error = true;
-						break;
-				default:
-					//NSLog(@"Unsupported reason!");
-					break;
-		}
-
-		MPMoviePlayerController *player = [notification object];
-
-		[[NSNotificationCenter defaultCenter]
-			removeObserver:self
-			name:MPMoviePlayerPlaybackDidFinishNotification
-			object:player];
-
-		[_instance.moviePlayerController stop];
-		[_instance.moviePlayerController.view removeFromSuperview];
-
-	video_playing = false;
-}
-*/
 
 @end

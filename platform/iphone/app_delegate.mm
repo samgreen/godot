@@ -29,14 +29,13 @@
 /*************************************************************************/
 
 #import "app_delegate.h"
+#import "gl_view.h"
+#import "GameController/GameController.h"
 
 #include "core/project_settings.h"
 #include "drivers/coreaudio/audio_driver_coreaudio.h"
-#import "gl_view.h"
 #include "main/main.h"
 #include "os_iphone.h"
-
-#import "GameController/GameController.h"
 
 #define kFilteringFactor 0.1
 #define kRenderingFrequency 60
@@ -63,8 +62,6 @@ void _set_keep_screen_on(bool p_enabled) {
 
 @implementation AppDelegate
 
-@synthesize window;
-
 extern int gargc;
 extern char **gargv;
 extern int iphone_main(int, int, int, char **, String);
@@ -72,11 +69,6 @@ extern void iphone_finish();
 
 CMMotionManager *motionManager;
 bool motionInitialised;
-
-static ViewController *mainViewController = nil;
-+ (ViewController *)getViewController {
-	return mainViewController;
-}
 
 NSMutableDictionary *ios_joysticks = nil;
 NSMutableArray *pending_ios_joysticks = nil;
@@ -130,50 +122,13 @@ void _ios_add_joystick(GCController *controller, AppDelegate *delegate) {
 				joy_id, true, [controller.vendorName UTF8String]);
 
 		// add it to our dictionary, this will retain our controllers
-		[ios_joysticks setObject:controller
-						  forKey:[NSNumber numberWithInt:joy_id]];
+		ios_joysticks[@(joy_id)] = controller;
 
 		// set our input handler
 		[delegate setControllerInputHandler:controller];
 	} else {
 		printf("Couldn't retrieve new joy id\n");
 	};
-}
-
-static void on_focus_out(ViewController *view_controller, bool *is_focus_out) {
-	if (!*is_focus_out) {
-		*is_focus_out = true;
-		if (OS::get_singleton()->get_main_loop())
-			OS::get_singleton()->get_main_loop()->notification(
-					MainLoop::NOTIFICATION_WM_FOCUS_OUT);
-
-		[view_controller.view stopAnimation];
-		if (OS::get_singleton()->native_video_is_playing()) {
-			OSIPhone::get_singleton()->native_video_focus_out();
-		}
-
-		AudioDriverCoreAudio *audio = dynamic_cast<AudioDriverCoreAudio *>(AudioDriverCoreAudio::get_singleton());
-		if (audio)
-			audio->stop();
-	}
-}
-
-static void on_focus_in(ViewController *view_controller, bool *is_focus_out) {
-	if (*is_focus_out) {
-		*is_focus_out = false;
-		if (OS::get_singleton()->get_main_loop())
-			OS::get_singleton()->get_main_loop()->notification(
-					MainLoop::NOTIFICATION_WM_FOCUS_IN);
-
-		[view_controller.view startAnimation];
-		if (OSIPhone::get_singleton()->native_video_is_playing()) {
-			OSIPhone::get_singleton()->native_video_unpause();
-		}
-
-		AudioDriverCoreAudio *audio = dynamic_cast<AudioDriverCoreAudio *>(AudioDriverCoreAudio::get_singleton());
-		if (audio)
-			audio->start();
-	}
 }
 
 - (void)controllerWasConnected:(NSNotification *)notification {
@@ -185,9 +140,9 @@ static void on_focus_in(ViewController *view_controller, bool *is_focus_out) {
 	// get our controller
 	GCController *controller = (GCController *)notification.object;
 	if (controller == nil) {
-		printf("Couldn't retrieve new controller\n");
-	} else if ([[ios_joysticks allKeysForObject:controller] count] != 0) {
-		printf("Controller is already registered\n");
+		NSLog(@"No controller attached to notification. Details: %@", notification);
+	} else if ([ios_joysticks containsObject:controller]) {
+		NSLog(@"Controller is already registered. Details: %@", controller);
 	} else if (frame_count > 1) {
 		_ios_add_joystick(controller, self);
 	} else {
@@ -421,9 +376,7 @@ OS::VideoMode _get_video_mode() {
 };
 
 static int frame_count = 0;
-- (void)drawView:(GLView *)view;
-{
-
+- (void)drawView:(GLView *)view {
 	switch (frame_count) {
 		case 0: {
 			OS::get_singleton()->set_video_mode(_get_video_mode());
@@ -438,7 +391,9 @@ static int frame_count = 0;
 					String::utf8([locale_code UTF8String]));
 
 			NSString *uuid;
-			if ([[UIDevice currentDevice]
+			if (NSClassFromString(@"NSUUID")) { 
+				uuid = [[NSUUID UUID] UUIDString];
+			} else if ([[UIDevice currentDevice]
 						respondsToSelector:@selector(identifierForVendor)]) {
 				uuid = [UIDevice currentDevice].identifierForVendor.UUIDString;
 			} else {
@@ -454,7 +409,6 @@ static int frame_count = 0;
 							   forKey:@"identifierForVendor"];
 				}
 			}
-
 			OSIPhone::get_singleton()->set_unique_id(String::utf8([uuid UTF8String]));
 
 		}; break;
@@ -464,36 +418,27 @@ static int frame_count = 0;
 			Main::setup2();
 			++frame_count;
 
-			if (pending_ios_joysticks != nil) {
-				for (GCController *controller in pending_ios_joysticks) {
-					_ios_add_joystick(controller, self);
-				}
-				[pending_ios_joysticks dealloc];
-				pending_ios_joysticks = nil;
+			for (GCController *controller in pending_ios_joysticks) {
+				_ios_add_joystick(controller, self);
 			}
+			[pending_ios_joysticks removeAllObjects];
 
-			// this might be necessary before here
 			NSDictionary *dict = [[NSBundle mainBundle] infoDictionary];
 			for (NSString *key in dict) {
-				NSObject *value = [dict objectForKey:key];
 				String ukey = String::utf8([key UTF8String]);
 
-				// we need a NSObject to Variant conversor
-
+				NSObject *value = dict[key];
 				if ([value isKindOfClass:[NSString class]]) {
 					NSString *str = (NSString *)value;
 					String uval = String::utf8([str UTF8String]);
 
 					ProjectSettings::get_singleton()->set("Info.plist/" + ukey, uval);
-
 				} else if ([value isKindOfClass:[NSNumber class]]) {
-
 					NSNumber *n = (NSNumber *)value;
 					double dval = [n doubleValue];
 
 					ProjectSettings::get_singleton()->set("Info.plist/" + ukey, dval);
 				};
-				// do stuff
 			}
 
 		}; break;
@@ -605,43 +550,35 @@ static int frame_count = 0;
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 	CGRect rect = [[UIScreen mainScreen] bounds];
 
-	is_focus_out = false;
+	self.focused = NO;
 
-	[application setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
 	// disable idle timer
 	// application.idleTimerDisabled = YES;
 
 	// Create a full-screen window
-	window = [[UIWindow alloc] initWithFrame:rect];
-	// window.autoresizesSubviews = YES;
-	//[window setAutoresizingMask:UIViewAutoresizingFlexibleWidth |
-	// UIViewAutoresizingFlexibleWidth];
+	self.window = [[UIWindow alloc] initWithFrame:rect];
 
 	// Create the OpenGL ES view and add it to the window
 	GLView *glView = [[GLView alloc] initWithFrame:rect];
-	printf("glview is %p\n", glView);
-	//[window addSubview:glView];
 	glView.delegate = self;
-	// glView.autoresizesSubviews = YES;
-	//[glView setAutoresizingMask:UIViewAutoresizingFlexibleWidth |
-	// UIViewAutoresizingFlexibleWidth];
+
+	NSLog(@"Created GLView. Details: %@", glView);
 
 	OS::VideoMode vm = _get_video_mode();
 
 	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
 			NSUserDomainMask, YES);
-	NSString *documentsDirectory = [paths objectAtIndex:0];
-
-	int err = iphone_main(vm.width, vm.height, gargc, gargv, String::utf8([documentsDirectory UTF8String]));
+	NSString *documents = paths.firstObject;
+	int err = iphone_main(vm.width, vm.height, gargc, gargv, String::utf8([documents UTF8String]));
 	if (err != 0) {
 		// bail, things did not go very well for us, should probably output a message on screen with our error code...
 		exit(0);
-		return FALSE;
+		return NO;
 	};
 
-	view_controller = [[ViewController alloc] init];
-	view_controller.view = glView;
-	window.rootViewController = view_controller;
+	self.rootViewController = [[ViewController alloc] init];
+	self.rootViewController.view = glView;
+	self.window.rootViewController = self.rootViewController;
 
 	_set_keep_screen_on(bool(GLOBAL_DEF("display/window/energy_saving/keep_screen_on", true)) ? YES : NO);
 	glView.useCADisplayLink =
@@ -651,7 +588,7 @@ static int frame_count = 0;
 	[glView startAnimation];
 
 	// Show the window
-	[window makeKeyAndVisible];
+	[self.window makeKeyAndVisible];
 
 	// Configure and start accelerometer
 	if (!motionInitialised) {
@@ -672,41 +609,27 @@ static int frame_count = 0;
 				   name:AVAudioSessionInterruptionNotification
 				 object:[AVAudioSession sharedInstance]];
 
-	// OSIPhone::screen_width = rect.size.width - rect.origin.x;
-	// OSIPhone::screen_height = rect.size.height - rect.origin.y;
-
-	mainViewController = view_controller;
-
 	// prevent to stop music in another background app
 	[[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
 
-	return TRUE;
+	return YES;
 };
 
 - (void)onAudioInterruption:(NSNotification *)notification {
 	if ([notification.name isEqualToString:AVAudioSessionInterruptionNotification]) {
-		if ([[notification.userInfo valueForKey:AVAudioSessionInterruptionTypeKey] isEqualToNumber:[NSNumber numberWithInt:AVAudioSessionInterruptionTypeBegan]]) {
-			NSLog(@"Audio interruption began");
-			on_focus_out(view_controller, &is_focus_out);
-		} else if ([[notification.userInfo valueForKey:AVAudioSessionInterruptionTypeKey] isEqualToNumber:[NSNumber numberWithInt:AVAudioSessionInterruptionTypeEnded]]) {
-			NSLog(@"Audio interruption ended");
-			on_focus_in(view_controller, &is_focus_out);
+		if ([notification.userInfo[AVAudioSessionInterruptionTypeKey] isEqualToNumber:@(AVAudioSessionInterruptionTypeBegan)]) {
+			NSLog(@"Audio interruption began. Details: %@", notification.userInfo);
+			[self toggleFocus:NO];
+		} else if ([notification.userInfo[AVAudioSessionInterruptionTypeKey] isEqualToNumber:@(AVAudioSessionInterruptionTypeEnded)]) {
+			NSLog(@"Audio interruption ended. Details: %@", notification.userInfo);
+			[self toggleFocus:YES];
 		}
 	}
 };
 
 - (void)applicationWillTerminate:(UIApplication *)application {
-	[self deinitGameControllers];
-
-	if (motionInitialised) {
-		///@TODO is this the right place to clean this up?
-		[motionManager stopDeviceMotionUpdates];
-		[motionManager release];
-		motionManager = nil;
-		motionInitialised = NO;
-	};
-
-	iphone_finish();
+	// We don't need to do any clean up here as the OS will jettison our application
+	// in the next few moments
 };
 
 // When application goes to background (e.g. user switches to another app or presses Home),
@@ -720,15 +643,42 @@ static int frame_count = 0;
 // notification panel by swiping from the upper part of the screen.
 
 - (void)applicationWillResignActive:(UIApplication *)application {
-	on_focus_out(view_controller, &is_focus_out);
+	[self toggleFocus:NO];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
-	on_focus_in(view_controller, &is_focus_out);
+	[self toggleFocus:YES];
+}
+
+- (void)toggleFocus:(BOOL)isFocused {
+	if (_focused != isFocused) {
+		_focused = isFocused;
+
+		if (OS::get_singleton()->get_main_loop()) {
+			int notification = self.isFocused ? MainLoop::NOTIFICATION_WM_FOCUS_IN : MainLoop::NOTIFICATION_WM_FOCUS_OUT;
+			OS::get_singleton()->get_main_loop()->notification(notification);
+		}
+		
+		[self.rootViewController stopAnimation];
+
+		if (OS::get_singleton()->native_video_is_playing()) {
+			if (self.isFocused) {
+				OSIPhone::get_singleton()->native_video_unpause();
+			} else {
+				OSIPhone::get_singleton()->native_video_focus_out();
+			}
+			
+		}
+
+		AudioDriverCoreAudio *audio = dynamic_cast<AudioDriverCoreAudio *>(AudioDriverCoreAudio::get_singleton());
+		if (audio) {
+			self.isFocused ? audio->start() : audio->stop();
+		}
+	}
 }
 
 - (void)dealloc {
-	[window release];
+	[self.window release];
 	[super dealloc];
 }
 
