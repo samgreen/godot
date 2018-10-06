@@ -30,12 +30,14 @@
 
 #import "app_delegate.h"
 #import "gl_view.h"
+#import "view_controller.h"
+#import <CoreMotion/CoreMotion.h>
 #import <GameController/GameController.h>
 
-#include "core/project_settings.h"
-#include "drivers/coreaudio/audio_driver_coreaudio.h"
-#include "main/main.h"
-#include "os_iphone.h"
+#import "core/project_settings.h"
+#import "drivers/coreaudio/audio_driver_coreaudio.h"
+#import "main/main.h"
+#import "os_iphone.h"
 
 #define kFilteringFactor 0.1
 #define kRenderingFrequency 60
@@ -517,24 +519,20 @@ static int frame_count = 0;
 };
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-	CGRect rect = [[UIScreen mainScreen] bounds];
-
 	self.focused = NO;
 
-	// disable idle timer
-	// application.idleTimerDisabled = YES;
-
 	// Create a full-screen window
+	CGRect rect = [[UIScreen mainScreen] bounds];
 	self.window = [[UIWindow alloc] initWithFrame:rect];
 
-	// Create the OpenGL ES view and add it to the window
-	GLView *glView = [[GLView alloc] initWithFrame:rect];
-	glView.delegate = self;
+	// Create our engine view controller
+	UIViewController *rootVC = [[ViewController alloc] init];
+	self.window.rootViewController = rootVC;
 
-	NSLog(@"Created GLView. Details: %@", glView);
+	// Show the window
+	[self.window makeKeyAndVisible];
 
 	OS::VideoMode vm = _get_video_mode();
-
 	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
 			NSUserDomainMask, YES);
 	NSString *documents = paths.firstObject;
@@ -545,19 +543,16 @@ static int frame_count = 0;
 		return NO;
 	};
 
-	self.rootViewController = [[ViewController alloc] init];
-	self.rootViewController.view = glView;
-	self.window.rootViewController = self.rootViewController;
-
 	_set_keep_screen_on(bool(GLOBAL_DEF("display/window/energy_saving/keep_screen_on", true)) ? YES : NO);
+
+	GLView *glView = rootVC.view;
+	glView.delegate = self;
+
 	glView.useCADisplayLink =
 			bool(GLOBAL_DEF("display.iOS/use_cadisplaylink", true)) ? YES : NO;
 	printf("cadisaplylink: %d", glView.useCADisplayLink);
 	glView.animationInterval = 1.0 / kRenderingFrequency;
 	[glView startAnimation];
-
-	// Show the window
-	[self.window makeKeyAndVisible];
 
 	// Configure and start accelerometer
 	if (!motionInitialised) {
@@ -631,9 +626,9 @@ static int frame_count = 0;
 
 		// OpenGL Animation
 		if (self.isFocused) {
-			[self.rootViewController.view startAnimation];
+			[self.window.rootViewController.view startAnimation];
 		} else {
-			[self.rootViewController.view stopAnimation];
+			[self.window.rootViewController.view stopAnimation];
 		}
 
 		// Native Video
