@@ -74,38 +74,7 @@ NSMutableDictionary *ios_joysticks = nil;
 NSMutableArray *pending_ios_joysticks = nil;
 
 - (GCControllerPlayerIndex)getFreePlayerIndex {
-	bool have_player_1 = false;
-	bool have_player_2 = false;
-	bool have_player_3 = false;
-	bool have_player_4 = false;
-
-	if (ios_joysticks == nil) {
-		NSArray *keys = [ios_joysticks allKeys];
-		for (NSNumber *key in keys) {
-			GCController *controller = [ios_joysticks objectForKey:key];
-			if (controller.playerIndex == GCControllerPlayerIndex1) {
-				have_player_1 = true;
-			} else if (controller.playerIndex == GCControllerPlayerIndex2) {
-				have_player_2 = true;
-			} else if (controller.playerIndex == GCControllerPlayerIndex3) {
-				have_player_3 = true;
-			} else if (controller.playerIndex == GCControllerPlayerIndex4) {
-				have_player_4 = true;
-			};
-		};
-	};
-
-	if (!have_player_1) {
-		return GCControllerPlayerIndex1;
-	} else if (!have_player_2) {
-		return GCControllerPlayerIndex2;
-	} else if (!have_player_3) {
-		return GCControllerPlayerIndex3;
-	} else if (!have_player_4) {
-		return GCControllerPlayerIndex4;
-	} else {
-		return GCControllerPlayerIndexUnset;
-	};
+	return (GCControllerPlayerIndex)ios_joysticks.count - 1;
 };
 
 void _ios_add_joystick(GCController *controller, AppDelegate *delegate) {
