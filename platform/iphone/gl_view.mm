@@ -41,7 +41,8 @@
 bool gles3_available = true;
 int gl_view_base_fb;
 static String keyboard_text;
-static GLView *_instance = NULL;
+
+static GLView *_instance = nil;
 
 static bool video_found_error = false;
 static bool video_playing = false;
@@ -60,18 +61,18 @@ CGFloat _points_to_pixels(CGFloat);
 void _show_keyboard(String p_existing) {
 	keyboard_text = p_existing;
 	printf("instance on show is %p\n", _instance);
-	[_instance open_keyboard];
+	[_instance becomeFirstResponder];
 };
 
 void _hide_keyboard() {
 	printf("instance on hide is %p\n", _instance);
-	[_instance hide_keyboard];
+	[_instance resignFirstResponder];
 	keyboard_text = "";
 };
 
 Rect2 _get_ios_window_safe_area(float p_window_width, float p_window_height) {
 	UIEdgeInsets insets = UIEdgeInsetsMake(0, 0, 0, 0);
-	if (_instance != nil && [_instance respondsToSelector:@selector(safeAreaInsets)]) {
+	if ([_instance respondsToSelector:@selector(safeAreaInsets)]) {
 		insets = [_instance safeAreaInsets];
 	}
 	ERR_FAIL_COND_V(insets.left < 0 || insets.top < 0 || insets.right < 0 || insets.bottom < 0,
@@ -515,14 +516,6 @@ CGFloat _points_to_pixels(CGFloat points) {
 	return YES;
 };
 
-- (void)open_keyboard {
-	[self becomeFirstResponder];
-};
-
-- (void)hide_keyboard {
-	[self resignFirstResponder];
-};
-
 - (void)keyboardOnScreen:(NSNotification *)notification {
 	NSValue *value = notification.userInfo[UIKeyboardFrameEndUserInfoKey];
 	CGRect frame = [value CGRectValue];
@@ -553,7 +546,7 @@ CGFloat _points_to_pixels(CGFloat points) {
 };
 
 - (void)audioRouteChangeListenerCallback:(NSNotification *)notification {
-	printf("*********** route changed!\n");
+	printf("*********** route changed!\n"); 
 	NSDictionary *interuptionDict = notification.userInfo;
 
 	NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
@@ -571,7 +564,7 @@ CGFloat _points_to_pixels(CGFloat points) {
 			if (_is_video_playing()) {
 
 				dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5f * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-					[_instance.avPlayer play]; // NOTE: change this line according your current player implementation
+					[self.avPlayer play]; // NOTE: change this line according your current player implementation
 					NSLog(@"resumed play");
 				});
 			};
@@ -585,28 +578,27 @@ CGFloat _points_to_pixels(CGFloat points) {
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
-	if (object == _instance.avPlayerItem && [keyPath isEqualToString:@"status"]) {
-		if (_instance.avPlayerItem.status == AVPlayerStatusFailed || _instance.avPlayer.status == AVPlayerStatusFailed) {
+	if (object == self.avPlayerItem && [keyPath isEqualToString:@"status"]) {
+		if (self.avPlayerItem.status == AVPlayerStatusFailed || self.avPlayer.status == AVPlayerStatusFailed) {
 			_stop_video();
 			video_found_error = true;
 		}
 
-		if (_instance.avPlayer.status == AVPlayerStatusReadyToPlay &&
-				_instance.avPlayerItem.status == AVPlayerItemStatusReadyToPlay &&
+		if (self.avPlayer.status == AVPlayerStatusReadyToPlay &&
+				self.avPlayerItem.status == AVPlayerItemStatusReadyToPlay &&
 				CMTIME_COMPARE_INLINE(video_current_time, ==, kCMTimeZero)) {
 
-			//NSLog(@"time: %@", video_current_time);
-
-			[_instance.avPlayer seekToTime:video_current_time];
+			[self.avPlayer seekToTime:video_current_time];
 			video_current_time = kCMTimeZero;
 		}
 	}
 
-	if (object == _instance.avPlayer && [keyPath isEqualToString:@"rate"]) {
-		NSLog(@"Player playback rate changed: %.5f", _instance.avPlayer.rate);
-		if (_is_video_playing() && _instance.avPlayer.rate == 0.0 && !_instance.avPlayer.error) {
+	if (object == self.avPlayer && [keyPath isEqualToString:@"rate"]) {
+		NSLog(@"Player playback rate changed: %.5f", self.avPlayer.rate);
+		
+		if (_is_video_playing() && self.avPlayer.rate == 0.0 && !self.avPlayer.error) {
 			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5f * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-				[_instance.avPlayer play]; // NOTE: change this line according your current player implementation
+				[self.avPlayer play]; // NOTE: change this line according your current player implementation
 				NSLog(@"resumed play");
 			});
 

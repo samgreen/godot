@@ -87,8 +87,6 @@
 - (void)stopAnimation;
 - (void)drawView;
 
-- (void)open_keyboard;
-- (void)hide_keyboard;
 - (void)deleteBackward;
 - (BOOL)hasText;
 - (void)insertText:(NSString *)p_text;

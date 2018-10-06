@@ -141,7 +141,7 @@ void _ios_add_joystick(GCController *controller, AppDelegate *delegate) {
 	GCController *controller = (GCController *)notification.object;
 	if (controller == nil) {
 		NSLog(@"No controller attached to notification. Details: %@", notification);
-	} else if ([ios_joysticks containsObject:controller]) {
+	} else if ([ios_joysticks.allValues containsObject:controller]) {
 		NSLog(@"Controller is already registered. Details: %@", controller);
 	} else if (frame_count > 1) {
 		_ios_add_joystick(controller, self);
@@ -402,7 +402,7 @@ static int frame_count = 0;
 						objectForKey:@"identiferForVendor"];
 				if (!uuid) {
 					CFUUIDRef cfuuid = CFUUIDCreate(NULL);
-					uuid = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, cfuuid);
+					uuid = (NSString *)CFUUIDCreateString(NULL, cfuuid);
 					CFRelease(cfuuid);
 					[[NSUserDefaults standardUserDefaults]
 							setObject:uuid
@@ -535,7 +535,7 @@ static int frame_count = 0;
 					};
 				}
 
-				bool quit_request = OSIPhone::get_singleton()->iterate();
+				OSIPhone::get_singleton()->iterate();
 			};
 
 		}; break;
@@ -654,13 +654,20 @@ static int frame_count = 0;
 	if (_focused != isFocused) {
 		_focused = isFocused;
 
+		// Handle notifications to main loop
 		if (OS::get_singleton()->get_main_loop()) {
 			int notification = self.isFocused ? MainLoop::NOTIFICATION_WM_FOCUS_IN : MainLoop::NOTIFICATION_WM_FOCUS_OUT;
 			OS::get_singleton()->get_main_loop()->notification(notification);
 		}
 		
-		[self.rootViewController stopAnimation];
-
+		// OpenGL Animation
+		if (self.isFocused) {
+			[self.rootViewController.view startAnimation];
+		} else {
+			[self.rootViewController.view stopAnimation];
+		}
+		
+		// Native Video
 		if (OS::get_singleton()->native_video_is_playing()) {
 			if (self.isFocused) {
 				OSIPhone::get_singleton()->native_video_unpause();
@@ -670,6 +677,7 @@ static int frame_count = 0;
 			
 		}
 
+		// Native Audio
 		AudioDriverCoreAudio *audio = dynamic_cast<AudioDriverCoreAudio *>(AudioDriverCoreAudio::get_singleton());
 		if (audio) {
 			self.isFocused ? audio->start() : audio->stop();
