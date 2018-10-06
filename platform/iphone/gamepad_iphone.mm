@@ -1,7 +1,6 @@
 #import "gamepad_iphone.h"
-#import "app_delegate.h"
-#import "core/project_settings.h"
 #import "os_iphone.h"
+#import <GameController/GameController.h>
 
 @interface GamepadManager ()
 
@@ -116,7 +115,7 @@
 		// add it to our dictionary, this will retain our controllers
 		self.gamepadById[@(joy_id)] = controller;
 		[self.gamepads addObject:controller];
-		
+
 		[self setControllerInputHandler:controller];
 	} else {
 		printf("Couldn't retrieve new joy id\n");

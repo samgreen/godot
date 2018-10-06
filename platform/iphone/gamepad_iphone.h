@@ -1,6 +1,4 @@
-#import <GameController/GameController.h>
-
-@class AppDelegate;
+#import <Foundation/Foundation.h>
 
 @interface GamepadManager : NSObject
 

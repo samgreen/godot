@@ -266,10 +266,10 @@ static int frame_count = 0;
 	_set_keep_screen_on(bool(GLOBAL_DEF("display/window/energy_saving/keep_screen_on", true)) ? YES : NO);
 
 	// Create our engine view controller
-	UIViewController *rootVC = [[ViewController alloc] init];
+	ViewController *rootVC = [[ViewController alloc] init];
 	self.window.rootViewController = rootVC;
 
-	GLView *glView = rootVC.view;
+	GLView *glView = rootVC.glView;
 	glView.delegate = self;
 
 	glView.useCADisplayLink =
@@ -340,10 +340,11 @@ static int frame_count = 0;
 		}
 
 		// OpenGL Animation
+		ViewController *viewController = (ViewController *)self.window.rootViewController;
 		if (self.isFocused) {
-			[self.window.rootViewController.view startAnimation];
+			[viewController.glView startAnimation];
 		} else {
-			[self.window.rootViewController.view stopAnimation];
+			[viewController.glView stopAnimation];
 		}
 
 		// Native Video
