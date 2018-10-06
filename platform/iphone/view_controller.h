@@ -28,12 +28,12 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
+#import "gl_view.h"
 #import <GameKit/GameKit.h>
 #import <UIKit/UIKit.h>
-#import "gl_view.h"
 
 @interface ViewController : UIViewController <GKGameCenterControllerDelegate>
 
-@property (nonatomic, strong) GLView *view;
+@property(nonatomic, strong) GLView *view;
 
 @end

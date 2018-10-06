@@ -71,17 +71,17 @@
 	float screen_scale;
 }
 
-@property (nonatomic, assign) id<GLViewDelegate> delegate;
+@property(nonatomic, assign) id<GLViewDelegate> delegate;
 
 // AVPlayer-related properties
-@property (strong, nonatomic) AVAsset *avAsset;
-@property (strong, nonatomic) AVPlayerItem *avPlayerItem;
-@property (strong, nonatomic) AVPlayer *avPlayer;
-@property (strong, nonatomic) AVPlayerLayer *avPlayerLayer;
+@property(strong, nonatomic) AVAsset *avAsset;
+@property(strong, nonatomic) AVPlayerItem *avPlayerItem;
+@property(strong, nonatomic) AVPlayer *avPlayer;
+@property(strong, nonatomic) AVPlayerLayer *avPlayerLayer;
 
-@property (nonatomic) UITextAutocorrectionType autocorrectionType;
-@property (assign) NSTimeInterval animationInterval;
-@property (nonatomic, assign) BOOL useCADisplayLink;
+@property(nonatomic) UITextAutocorrectionType autocorrectionType;
+@property(assign) NSTimeInterval animationInterval;
+@property(nonatomic, assign) BOOL useCADisplayLink;
 
 - (void)startAnimation;
 - (void)stopAnimation;

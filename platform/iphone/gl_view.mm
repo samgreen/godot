@@ -97,10 +97,10 @@ bool _play_video(String p_path, float p_volume, String p_audio_track, String p_s
 	[_instance.avPlayer addObserver:_instance forKeyPath:@"status" options:0 context:nil];
 	[_instance.avPlayer addObserver:_instance forKeyPath:@"rate" options:NSKeyValueObservingOptionNew context:0];
 	[[NSNotificationCenter defaultCenter]
-		addObserver:_instance
-			selector:@selector(playerItemDidReachEnd:)
-				name:AVPlayerItemDidPlayToEndTimeNotification
-				object:[_instance.avPlayer currentItem]];
+			addObserver:_instance
+			   selector:@selector(playerItemDidReachEnd:)
+				   name:AVPlayerItemDidPlayToEndTimeNotification
+				 object:[_instance.avPlayer currentItem]];
 
 	[_instance.avPlayerLayer setFrame:_instance.bounds];
 	[_instance.layer addSublayer:_instance.avPlayerLayer];
@@ -192,7 +192,7 @@ CGFloat _points_to_pixels(CGFloat points) {
 
 @interface GLView ()
 
-@property (nonatomic, strong) NSMutableArray *activeTouches;
+@property(nonatomic, strong) NSMutableArray *activeTouches;
 
 @end
 
@@ -261,21 +261,21 @@ CGFloat _points_to_pixels(CGFloat points) {
 	printf("******** adding observer for sound routing changes\n");
 	[[NSNotificationCenter defaultCenter]
 			addObserver:self
-			selector:@selector(audioRouteChangeListenerCallback:)
-				name:AVAudioSessionRouteChangeNotification
-				object:nil];
+			   selector:@selector(audioRouteChangeListenerCallback:)
+				   name:AVAudioSessionRouteChangeNotification
+				 object:nil];
 
 	printf("******** adding observer for keyboard show/hide\n");
 	[[NSNotificationCenter defaultCenter]
 			addObserver:self
-			selector:@selector(keyboardOnScreen:)
-				name:UIKeyboardDidShowNotification
-				object:nil];
+			   selector:@selector(keyboardOnScreen:)
+				   name:UIKeyboardDidShowNotification
+				 object:nil];
 	[[NSNotificationCenter defaultCenter]
 			addObserver:self
-			selector:@selector(keyboardHidden:)
-				name:UIKeyboardDidHideNotification
-				object:nil];
+			   selector:@selector(keyboardHidden:)
+				   name:UIKeyboardDidHideNotification
+				 object:nil];
 }
 
 // Stop animating and release resources when they are no longer needed.
@@ -381,22 +381,22 @@ CGFloat _points_to_pixels(CGFloat points) {
 
 	printf("start animation!\n");
 	if (useCADisplayLink) {
-		displayLink = [CADisplayLink displayLinkWithTarget:self 
+		displayLink = [CADisplayLink displayLinkWithTarget:self
 												  selector:@selector(drawView)];
 
-		// Approximate frame rate: assumes device refreshes at 60 fps. 
+		// Approximate frame rate: assumes device refreshes at 60 fps.
 		// Note that newer iOS devices are 120Hz screens
 		displayLink.frameInterval = (int)floor(animationInterval * 60.0f);
 
 		// Setup DisplayLink in main thread
-		[displayLink addToRunLoop:[NSRunLoop currentRunLoop] 
+		[displayLink addToRunLoop:[NSRunLoop currentRunLoop]
 						  forMode:NSRunLoopCommonModes];
 	} else {
-		animationTimer = [NSTimer scheduledTimerWithTimeInterval:animationInterval 
-														  target:self 
-														selector:@selector(drawView) 
-														userInfo:nil 
-														repeats:YES];
+		animationTimer = [NSTimer scheduledTimerWithTimeInterval:animationInterval
+														  target:self
+														selector:@selector(drawView)
+														userInfo:nil
+														 repeats:YES];
 	}
 
 	if (video_playing) {
@@ -476,7 +476,7 @@ CGFloat _points_to_pixels(CGFloat points) {
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
 	UITouch *touch = [touches anyObject];
-	
+
 	[self.activeTouches addObject:touch];
 
 	CGPoint touchPoint = [self scaledPoint:[touch locationInView:self]];
@@ -546,7 +546,7 @@ CGFloat _points_to_pixels(CGFloat points) {
 };
 
 - (void)audioRouteChangeListenerCallback:(NSNotification *)notification {
-	printf("*********** route changed!\n"); 
+	printf("*********** route changed!\n");
 	NSDictionary *interuptionDict = notification.userInfo;
 
 	NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
@@ -595,7 +595,7 @@ CGFloat _points_to_pixels(CGFloat points) {
 
 	if (object == self.avPlayer && [keyPath isEqualToString:@"rate"]) {
 		NSLog(@"Player playback rate changed: %.5f", self.avPlayer.rate);
-		
+
 		if (_is_video_playing() && self.avPlayer.rate == 0.0 && !self.avPlayer.error) {
 			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5f * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
 				[self.avPlayer play]; // NOTE: change this line according your current player implementation

@@ -30,7 +30,7 @@
 
 #import "app_delegate.h"
 #import "gl_view.h"
-#import "GameController/GameController.h"
+#import <GameController/GameController.h>
 
 #include "core/project_settings.h"
 #include "drivers/coreaudio/audio_driver_coreaudio.h"
@@ -360,10 +360,10 @@ static int frame_count = 0;
 					String::utf8([locale_code UTF8String]));
 
 			NSString *uuid;
-			if (NSClassFromString(@"NSUUID")) { 
+			if (NSClassFromString(@"NSUUID")) {
 				uuid = [[NSUUID UUID] UUIDString];
 			} else if ([[UIDevice currentDevice]
-						respondsToSelector:@selector(identifierForVendor)]) {
+							   respondsToSelector:@selector(identifierForVendor)]) {
 				uuid = [UIDevice currentDevice].identifierForVendor.UUIDString;
 			} else {
 				// before iOS 6, so just generate an identifier and store it
@@ -628,14 +628,14 @@ static int frame_count = 0;
 			int notification = self.isFocused ? MainLoop::NOTIFICATION_WM_FOCUS_IN : MainLoop::NOTIFICATION_WM_FOCUS_OUT;
 			OS::get_singleton()->get_main_loop()->notification(notification);
 		}
-		
+
 		// OpenGL Animation
 		if (self.isFocused) {
 			[self.rootViewController.view startAnimation];
 		} else {
 			[self.rootViewController.view stopAnimation];
 		}
-		
+
 		// Native Video
 		if (OS::get_singleton()->native_video_is_playing()) {
 			if (self.isFocused) {
@@ -643,7 +643,6 @@ static int frame_count = 0;
 			} else {
 				OSIPhone::get_singleton()->native_video_focus_out();
 			}
-			
 		}
 
 		// Native Audio
