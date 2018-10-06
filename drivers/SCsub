@@ -28,6 +28,8 @@ if (env["platform"] != "server"):
     SConscript('gles3/SCsub')
     SConscript('gles2/SCsub')
     SConscript('gl_context/SCsub')
+    if (env["platform"] == "osx" or env["platform"] == "iphone"):
+        SConscript('metal/SCsub')
 else:
     SConscript('dummy/SCsub')
 
