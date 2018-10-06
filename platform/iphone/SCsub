@@ -18,6 +18,7 @@ iphone_lib = [
     'ios.mm',
     'gamepad_iphone.mm',
     'video_iphone.mm',
+    'motion_iphone.mm',
 ]
 
 env_ios = env.Clone()
