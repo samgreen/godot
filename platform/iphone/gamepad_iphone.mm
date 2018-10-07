@@ -132,6 +132,10 @@
 - (void)removeController:(GCController *)controller {
 	// tell Godot this joystick is no longer there
 	int joy_id = [self getJoyIdForController:controller];
+	if (joy_id == -1) {
+		// Bail out if Godot doesn't know about this controller
+		return;
+	}
 	OSIPhone::get_singleton()->joy_connection_changed(joy_id, false, "");
 
 	// Stop tracking internally
