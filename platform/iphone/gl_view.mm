@@ -180,9 +180,6 @@ OS::VideoMode _get_video_mode() {
 }
 
 - (BOOL)createFramebuffer {
-	CGSize bufferSize = [UIScreen mainScreen].nativeBounds.size;
-	printf("******** screen size %i, %i\n", bufferSize.width, bufferSize.height);
-
 	// Generate IDs for a framebuffer object and a color renderbuffer
 	glGenFramebuffersOES(1, &viewFramebuffer);
 	glBindFramebufferOES(GL_FRAMEBUFFER_OES, viewFramebuffer);
@@ -199,13 +196,14 @@ OS::VideoMode _get_video_mode() {
 	}
 
 	if (OS::get_singleton()) {
+		OSIPhone::get_singleton()->set_base_framebuffer(viewFramebuffer);
+
 		OS::VideoMode vm;
 		vm.fullscreen = true;
-		vm.width = bufferSize.width;
-		vm.height = bufferSize.height;
 		vm.resizable = false;
+		glGetRenderbufferParameterivOES(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_WIDTH_OES, &vm.width);
+		glGetRenderbufferParameterivOES(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_HEIGHT_OES, &vm.height);
 		OS::get_singleton()->set_video_mode(vm);
-		OSIPhone::get_singleton()->set_base_framebuffer(viewFramebuffer);
 	}
 
 	// Save the gl reference to the frame buffer

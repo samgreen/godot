@@ -137,11 +137,12 @@ extern void _set_keep_screen_on(bool p_enabled);
 	// Show the window
 	[self.window makeKeyAndVisible];
 
-	CGSize screenSize = [UIScreen mainScreen].nativeBounds.size;
+	CGSize bufferSize = [UIScreen mainScreen].nativeBounds.size;
+	printf("******** screen size %.0f, %.0f\n", bufferSize.width, bufferSize.height);
 	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
 			NSUserDomainMask, YES);
 	NSString *documents = paths.firstObject;
-	int err = iphone_main((int)screenSize.width, (int)screenSize.height, gargc, gargv, String::utf8([documents UTF8String]));
+	int err = iphone_main((int)bufferSize.width, (int)bufferSize.height, gargc, gargv, String::utf8([documents UTF8String]));
 	if (err != 0) {
 		// bail, things did not go very well for us, should probably output a message on screen with our error code...
 		exit(0);
