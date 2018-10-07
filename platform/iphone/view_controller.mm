@@ -93,22 +93,7 @@ static GodotGameViewController *_instance = nil;
 };
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-	switch (OS::get_singleton()->get_screen_orientation()) {
-		case OS::SCREEN_PORTRAIT:
-			return UIInterfaceOrientationMaskPortrait;
-		case OS::SCREEN_REVERSE_LANDSCAPE:
-			return UIInterfaceOrientationMaskLandscapeRight;
-		case OS::SCREEN_REVERSE_PORTRAIT:
-			return UIInterfaceOrientationMaskPortraitUpsideDown;
-		case OS::SCREEN_SENSOR_LANDSCAPE:
-			return UIInterfaceOrientationMaskLandscape;
-		case OS::SCREEN_SENSOR_PORTRAIT:
-			return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
-		case OS::SCREEN_SENSOR:
-			return UIInterfaceOrientationMaskAll;
-		case OS::SCREEN_LANDSCAPE:
-			return UIInterfaceOrientationMaskLandscapeLeft;
-	}
+	return UIInterfaceOrientationMaskAll;
 };
 
 - (BOOL)prefersStatusBarHidden {
