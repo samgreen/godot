@@ -47,6 +47,12 @@ extern void iphone_finish();
 extern void _set_keep_screen_on(bool p_enabled);
 extern OS::VideoMode _get_video_mode();
 
+@interface AppDelegate ()
+
+@property(assign, nonatomic, getter=isFocused) BOOL focused;
+
+@end
+
 @implementation AppDelegate
 
 - (void)drawView:(GLView *)view {
