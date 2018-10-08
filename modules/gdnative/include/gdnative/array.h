@@ -112,6 +112,8 @@ void GDAPI godot_array_push_back(godot_array *p_self, const godot_variant *p_val
 
 void GDAPI godot_array_push_front(godot_array *p_self, const godot_variant *p_value);
 
+const godot_variant GDAPI *godot_array_random_value(godot_array *p_self); 
+
 void GDAPI godot_array_remove(godot_array *p_self, const godot_int p_idx);
 
 void GDAPI godot_array_resize(godot_array *p_self, const godot_int p_size);

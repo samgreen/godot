@@ -93,6 +93,7 @@ public:
 
 	Variant min() const;
 	Variant max() const;
+	Variant random() const;
 
 	Array(const Array &p_from);
 	Array();

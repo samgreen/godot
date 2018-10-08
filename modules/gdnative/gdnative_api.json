@@ -2840,6 +2840,13 @@
         ]
       },
       {
+        "name": "godot_array_random_value",
+        "return_type": "const godot_variant *",
+        "arguments": [
+          ["godot_array *", "p_self"]
+        ]
+      },
+      {
         "name": "godot_array_remove",
         "return_type": "void",
         "arguments": [

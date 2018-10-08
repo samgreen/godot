@@ -401,6 +401,12 @@ Variant Array::max() const {
 	return maxval;
 }
 
+Variant Array::random() const {
+
+	ERR_FAIL_COND_V(_p->array.size() == 0, Variant());
+	return operator[](Math::rand() % size());;
+}
+
 Array::Array(const Array &p_from) {
 
 	_p = NULL;
