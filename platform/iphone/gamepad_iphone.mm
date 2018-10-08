@@ -28,7 +28,7 @@
 		self.gamepadById = [NSMutableDictionary dictionary];
 		self.gamepads = [NSMutableArray arrayWithCapacity:5];
 		self.pendingGamepads = [NSMutableArray arrayWithCapacity:3];
-		self.availablePlayerIndices = [NSMutableArray arrayWithArray:@[@(GCControllerPlayerIndex1), @(GCControllerPlayerIndex2), @(GCControllerPlayerIndex3), @(GCControllerPlayerIndex4)]];
+		self.availablePlayerIndices = [NSMutableArray arrayWithArray:@[ @(GCControllerPlayerIndex1), @(GCControllerPlayerIndex2), @(GCControllerPlayerIndex3), @(GCControllerPlayerIndex4) ]];
 
 		[[NSNotificationCenter defaultCenter]
 				addObserver:self

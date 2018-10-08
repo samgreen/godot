@@ -80,7 +80,7 @@ static GodotGameViewController *_instance = nil;
 	return (GLView *)self.view;
 }
 
-#pragma mark - View Geometry
+#pragma mark - UIViewController Overrides
 - (BOOL)shouldAutorotate {
 	switch (OS::get_singleton()->get_screen_orientation()) {
 		case OS::SCREEN_SENSOR:
