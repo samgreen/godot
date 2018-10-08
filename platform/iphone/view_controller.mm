@@ -90,11 +90,11 @@ static GodotGameViewController *_instance = nil;
 		default:
 			return NO;
 	}
-};
+}
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
 	return UIInterfaceOrientationMaskAll;
-};
+}
 
 - (BOOL)prefersStatusBarHidden {
 	return YES;
@@ -189,13 +189,13 @@ void _show_keyboard(String p_existing) {
 	keyboard_text = p_existing;
 	NSLog(@"Show keyboard");
 	[_instance becomeFirstResponder];
-};
+}
 
 void _hide_keyboard() {
 	NSLog(@"Hide keyboard and clear text");
 	[_instance resignFirstResponder];
 	keyboard_text = "";
-};
+}
 
 Rect2 _get_ios_window_safe_area(float p_window_width, float p_window_height) {
 	UIEdgeInsets insets = UIEdgeInsetsMake(0, 0, 0, 0);
