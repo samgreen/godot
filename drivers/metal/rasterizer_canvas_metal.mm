@@ -5,6 +5,7 @@
 #include "core/project_settings.h"
 // rasterizer metal scene?
 #include "servers/visual/visual_server_raster.h"
+#import <Metal/Metal.h>
 
 void RasterizerCanvasMetal::initialize() {
     device = MTLCreateSystemDefaultDevice();
@@ -20,7 +21,7 @@ void RasterizerCanvasMetal::initialize() {
                                                   options:MTLStorageModeShared];
     memcpy(data.canvas_quad_buffer, &qv, kQuadBufferLength);
 
-    command_queue = [device newCommandQueue];
+    state.command_queue = [device newCommandQueue];
 }
 
 void RasterizerCanvasMetal::finalize() {
