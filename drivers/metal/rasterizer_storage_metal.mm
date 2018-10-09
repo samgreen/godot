@@ -2,6 +2,7 @@
 #include "core/engine.h"
 #include "core/project_settings.h"
 #include "rasterizer_canvas_metal.h"
+#include "rasterizer_scene_metal.h"
 
 RID RasterizerStorageMetal::texture_create() {
 
@@ -389,4 +390,64 @@ RID RasterizerStorageMetal::texture_create_radiance_cubemap(RID p_source, int p_
 	ERR_FAIL_COND_V(!texture, RID());
 	ERR_FAIL_COND_V(texture->type != VS::TEXTURE_TYPE_CUBEMAP, RID());
     return RID();
+}
+
+/* SHADER API */
+
+RID RasterizerStorageMetal::shader_create() {
+
+	Shader *shader = memnew(Shader);
+	shader->mode = VS::SHADER_SPATIAL;
+	// shader->shader = &scene->state.scene_shader;
+	RID rid = shader_owner.make_rid(shader);
+	// _shader_make_dirty(shader);
+	shader->self = rid;
+
+	return rid;
+}
+
+void RasterizerStorageMetal::shader_set_code(RID p_shader, const String &p_code) {
+
+	Shader *shader = shader_owner.get(p_shader);
+	ERR_FAIL_COND(!shader);
+
+	shader->code = p_code;
+
+	String mode_string = ShaderLanguage::get_shader_type(p_code);
+	VS::ShaderMode mode;
+
+	if (mode_string == "canvas_item")
+		mode = VS::SHADER_CANVAS_ITEM;
+	else if (mode_string == "particles")
+		mode = VS::SHADER_PARTICLES;
+	else
+		mode = VS::SHADER_SPATIAL;
+
+	if (shader->custom_code_id && mode != shader->mode) {
+
+		// shader->shader->free_custom_shader(shader->custom_code_id);
+		shader->custom_code_id = 0;
+	}
+
+	shader->mode = mode;
+
+	// id<MTLFunction> *shaders[VS::SHADER_MAX] = {
+	// 	&scene->state.scene_shader,
+	// 	&canvas->state.canvas_shader,
+	// 	&this->shaders.particles,
+
+	// };
+
+	// shader->shader = shaders[mode];
+
+	// if (shader->custom_code_id == 0) {
+	// 	shader->custom_code_id = shader->shader->create_custom_shader();
+	// }
+}
+
+String RasterizerStorageMetal::shader_get_code(RID p_shader) const {
+
+	const Shader *shader = shader_owner.get(p_shader);
+	ERR_FAIL_COND_V(!shader, String());
+	return shader->code;
 }

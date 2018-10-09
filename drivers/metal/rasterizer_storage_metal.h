@@ -279,6 +279,14 @@ public:
 		}
 	};
 
+    mutable RID_Owner<Shader> shader_owner;
+    // mutable SelfList<Shader>::List _shader_dirty_list;
+
+    virtual RID shader_create();
+
+    virtual void shader_set_code(RID p_shader, const String &p_code);
+	virtual String shader_get_code(RID p_shader) const;
+
 	// Material -> RID_Data
 	// Skeleton -> RID_Data
 	// GIProbeData -> RID_Data
