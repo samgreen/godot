@@ -4,32 +4,32 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+
 	<key>CFBundleDisplayName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
+
 	<key>CFBundleShortVersionString</key>
 	<string>$short_version</string>
 	<key>CFBundleVersion</key>
 	<string>$version</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
+
+	
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	$docs_in_place
 	<key>UIFileSharingEnabled</key>
 	$docs_sharing
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		$required_device_capabilities
-	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>$camera_usage_description</string>
 	<key>NSPhotoLibraryUsageDescription</key>
