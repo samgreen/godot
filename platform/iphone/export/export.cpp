@@ -254,7 +254,6 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 	// They *must* match the capabilities of your provisioning profile
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "capabilities/arkit"), false));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "capabilities/camera"), false));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "capabilities/game_center"), true));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "capabilities/in_app_purchases"), false));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "capabilities/push_notifications"), false));
 
@@ -388,9 +387,6 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 			strnew += lines[i].replace("$docs_in_place", ((bool)p_preset->get("user_data/accessible_from_files_app")) ? "<true/>" : "<false/>") + "\n";
 		} else if (lines[i].find("$docs_sharing") != -1) {
 			strnew += lines[i].replace("$docs_sharing", ((bool)p_preset->get("user_data/accessible_from_itunes_sharing")) ? "<true/>" : "<false/>") + "\n";
-		} else if (lines[i].find("$game_center") != -1) {
-			bool is_on = p_preset->get("capabilities/game_center");
-			strnew += lines[i].replace("$game_center", is_on ? "1" : "0") + "\n";
 		} else if (lines[i].find("$in_app_purchases") != -1) {
 			bool is_on = p_preset->get("capabilities/in_app_purchases");
 			strnew += lines[i].replace("$in_app_purchases", is_on ? "1" : "0") + "\n";
@@ -406,9 +402,6 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 
 			if ((bool)p_preset->get("capabilities/arkit")) {
 				capabilities += "<string>arkit</string>\n";
-			}
-			if ((bool)p_preset->get("capabilities/game_center")) {
-				capabilities += "<string>gamekit</string>\n";
 			}
 
 			strnew += lines[i].replace("$required_device_capabilities", capabilities);
