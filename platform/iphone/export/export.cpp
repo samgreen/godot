@@ -297,7 +297,6 @@ void EditorExportPlatformIOS::_append_to_file(const Ref<EditorExportPreset> &p_p
 
 	// Create a new string to append to original values
 	String strnew;
-	strnew += make_xcconfig_setting("INFOPLIST_FILE", get_binary_path(p_config) + "-Info.plist");
 	strnew += make_xcconfig_setting("PRODUCT_BUNDLE_IDENTIFIER", p_preset->get("application/identifier"));
 	strnew += make_xcconfig_setting("DEVELOPMENT_TEAM", p_preset->get("application/app_store_team_id"));
 	
@@ -948,7 +947,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 
 	const String project_file = "godot_ios.xcodeproj/project.pbxproj";
 	Set<String> files_to_parse;
-	files_to_parse.insert("godot_ios/godot_ios-Info.plist");
+	files_to_parse.insert("godot_ios/Info.plist");
 	files_to_parse.insert(project_file);
 	files_to_parse.insert("godot_ios/export_options.plist");
 	files_to_parse.insert("godot_ios/dummy.cpp");
