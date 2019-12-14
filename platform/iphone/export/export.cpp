@@ -115,6 +115,14 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 				*r_error = TTR("Identifier is missing.");
 			}
 			return false;
+		} else if (pname.length() < 2) {
+			if (r_error) {
+				*r_error = TTR("Identifier is too short. Must be at least 2 characters.");
+			}
+		} else if (pname.length() > 255) {
+			if (r_error) {
+				*r_error = TTR("Identifier is too long. Must be less than 255 characters.")
+			}
 		}
 
 		int segments = 0;
@@ -151,13 +159,6 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 				return false;
 			}
 			first = false;
-		}
-
-		if (segments == 0) {
-			if (r_error) {
-				*r_error = TTR("The Identifier must have at least one '.' separator.");
-			}
-			return false;
 		}
 
 		if (first) {
