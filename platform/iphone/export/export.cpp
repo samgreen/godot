@@ -858,6 +858,8 @@ String get_xcodeproj_path(const String &p_path) {
 	return get_core_path(p_path) + ".xcodeproj";
 }
 
+// Error write_file_one_shot
+
 Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags) {
 	ExportNotifier notifier(*this, p_preset, p_debug, p_path, p_flags);
 
@@ -890,26 +892,29 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 
 	DirAccess *da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 	if (da) {
+		// Save starting directory
 		String current_dir = da->get_current_dir();
 
 		// TODO: Find a less destructive way to handle this path
-
 		// remove leftovers from last export so they don't interfere
 		// in case some files are no longer needed
+		
 		// Wipe Xcode project
 		if (da->change_dir(get_xcodeproj_path(p_path)) == OK) {
 			da->erase_contents_recursive();
 		}
+
 		// Wipe Source
-		if (da->change_dir(dest_dir + binary_name) == OK) {
+		if (da->change_dir(get_core_path(p_path)) == OK) {
 			da->erase_contents_recursive();
 		}
 
+		// Return to starting directory
 		da->change_dir(current_dir);
 
 		// Recreate the source folder if missing
-		if (!da->dir_exists(dest_dir + binary_name)) {
-			Error err = da->make_dir(dest_dir + binary_name);
+		if (!da->dir_exists(get_core_path(p_path))) {
+			Error err = da->make_dir(get_core_path(p_path));
 			if (err) {
 				memdelete(da);
 				return err;
@@ -921,7 +926,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	if (ep.step("Making .pck", 0)) {
 		return ERR_SKIP;
 	}
-	String pack_path = dest_dir + binary_name + ".pck";
+	String pack_path = get_core_path(p_path) + ".pck";
 	Vector<SharedObject> libraries;
 	Error err = save_pack(p_preset, pack_path, &libraries);
 	if (err)
@@ -1057,7 +1062,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 			/* make sure this folder exists */
 			String dir_name = file.get_base_dir();
 			if (!tmp_app_path->dir_exists(dir_name)) {
-				print_line("Creating " + dir_name);
+				print_line("Creating directory: " + dir_name);
 				Error dir_err = tmp_app_path->make_dir_recursive(dir_name);
 				if (dir_err) {
 					ERR_PRINTS("Can't create '" + dir_name + "'.");
@@ -1099,7 +1104,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 		return ERR_FILE_NOT_FOUND;
 	}
 
-	String iconset_dir = dest_dir + binary_name + "/Images.xcassets/AppIcon.appiconset/";
+	String iconset_dir = get_core_path(p_path) + "/Images.xcassets/AppIcon.appiconset/";
 	print_line("Writing to iconset_dir: " + iconset_dir);
 	err = OK;
 	if (!tmp_app_path->dir_exists(iconset_dir)) {
@@ -1115,9 +1120,9 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 
 	print_line("Exporting additional assets to destination: " + dest_dir);
 	Vector<IOSExportAsset> assets;
-	_export_additional_assets(dest_dir + binary_name, libraries, assets);
+	_export_additional_assets(get_core_path(p_path), libraries, assets);
 	_add_assets_to_project(p_preset, project_file_data, assets);
-	String project_file_name = dest_dir + binary_name + ".xcodeproj/project.pbxproj";
+	String project_file_name = get_xcodeproj_path(p_path) + "/project.pbxproj";
 	FileAccess *f = FileAccess::open(project_file_name, FileAccess::WRITE);
 	if (!f) {
 		ERR_PRINTS("Can't write '" + project_file_name + "'.");
