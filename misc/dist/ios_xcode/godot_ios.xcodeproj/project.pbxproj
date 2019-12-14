@@ -186,7 +186,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 87D30C9722235A2200E688DC /* godot.xcconfig */;
 			buildSettings = {
-				INFOPLIST_FILE = "$(PRODUCT_NAME)/Info.plist";
 				COPY_PHASE_STRIP = NO;
 				STRIP_INSTALLED_PRODUCT = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -204,7 +203,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 87D30C9722235A2200E688DC /* godot.xcconfig */;
 			buildSettings = {
-				INFOPLIST_FILE = "$(PRODUCT_NAME)/Info.plist";
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				VALIDATE_PRODUCT = YES;
@@ -216,7 +214,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CE442D0F23A4D2EC00C6F4D9 /* Debug.xcconfig */;
 			buildSettings = {
-				INFOPLIST_FILE = "$(PRODUCT_NAME)/Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -228,7 +225,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CE442D0D23A4D2EC00C6F4D9 /* Release.xcconfig */;
 			buildSettings = {
-				INFOPLIST_FILE = "$(PRODUCT_NAME)/Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
