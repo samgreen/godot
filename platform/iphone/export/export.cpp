@@ -92,9 +92,11 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	String _get_additional_plist_content();
 	String _get_linker_flags();
 	String _get_cpp_code();
+	void _fix_project_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug);
 	void _fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug);
+	void _fix_plist_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug);
 	void _append_to_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug);
-	Error _export_loading_screens(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir);
+
 	Error _export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir);
 
 	Vector<ExportArchitecture> _get_supported_architectures();
@@ -225,26 +227,6 @@ Vector<EditorExportPlatformIOS::ExportArchitecture> EditorExportPlatformIOS::_ge
 	return archs;
 }
 
-struct LoadingScreenInfo {
-	const char *preset_key;
-	const char *export_name;
-};
-
-static const LoadingScreenInfo loading_screen_infos[] = {
-	{ "landscape_launch_screens/iphone_2436x1125", "Default-Landscape-X.png" },
-	{ "landscape_launch_screens/iphone_2208x1242", "Default-Landscape-736h@3x.png" },
-	{ "landscape_launch_screens/ipad_1024x768", "Default-Landscape.png" },
-	{ "landscape_launch_screens/ipad_2048x1536", "Default-Landscape@2x.png" },
-
-	{ "portrait_launch_screens/iphone_640x960", "Default-480h@2x.png" },
-	{ "portrait_launch_screens/iphone_640x1136", "Default-568h@2x.png" },
-	{ "portrait_launch_screens/iphone_750x1334", "Default-667h@2x.png" },
-	{ "portrait_launch_screens/iphone_1125x2436", "Default-Portrait-X.png" },
-	{ "portrait_launch_screens/ipad_768x1024", "Default-Portrait.png" },
-	{ "portrait_launch_screens/ipad_1536x2048", "Default-Portrait@2x.png" },
-	{ "portrait_launch_screens/iphone_1242x2208", "Default-Portrait-736h@3x.png" }
-};
-
 void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) {
 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_package/debug", PROPERTY_HINT_GLOBAL_FILE, "*.zip"), ""));
@@ -285,23 +267,20 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "orientation/landscape_left"), true));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "orientation/landscape_right"), true));
 
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "optional_icons/iphone_120x120", PROPERTY_HINT_FILE, "*.png"), "")); // Home screen on iPhone/iPod Touch with retina display
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "optional_icons/ipad_76x76", PROPERTY_HINT_FILE, "*.png"), "")); // Home screen on iPad
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "optional_icons/app_store_1024x1024", PROPERTY_HINT_FILE, "*.png"), "")); // App Store
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "optional_icons/iphone_180x180", PROPERTY_HINT_FILE, "*.png"), "")); // Home screen on iPhone with retina HD display
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "optional_icons/ipad_152x152", PROPERTY_HINT_FILE, "*.png"), "")); // Home screen on iPad with retina display
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "optional_icons/ipad_167x167", PROPERTY_HINT_FILE, "*.png"), "")); // Home screen on iPad Pro
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "optional_icons/spotlight_40x40", PROPERTY_HINT_FILE, "*.png"), "")); // Spotlight
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "optional_icons/spotlight_80x80", PROPERTY_HINT_FILE, "*.png"), "")); // Spotlight on devices with retina display
+	// We should be able to downsize and generate the remaining icons from this icon
+	// TODO: Generate other icon sizes from this new export option
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/icon_1024x1024", PROPERTY_HINT_FILE, "*.png"), ""));
 
-	for (uint64_t i = 0; i < sizeof(loading_screen_infos) / sizeof(loading_screen_infos[0]); ++i) {
-		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, loading_screen_infos[i].preset_key, PROPERTY_HINT_FILE, "*.png"), ""));
-	}
-
+	// Add architectures to allow the user to select from armv7 (disabled by default) and arm64. This is the
+	// place to add new architectures like arm64e
 	Vector<ExportArchitecture> architectures = _get_supported_architectures();
 	for (int i = 0; i < architectures.size(); ++i) {
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "architectures/" + architectures[i].name), architectures[i].is_default));
 	}
+}
+
+String make_xcconfig_setting(String key, Variant value) {
+	return key + " = " + String(value) + ";\n";
 }
 
 void EditorExportPlatformIOS::_append_to_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug) {
@@ -312,28 +291,28 @@ void EditorExportPlatformIOS::_append_to_file(const Ref<EditorExportPreset> &p_p
 	String binary_path = p_config.binary_name + "/" + p_config.binary_name;
 
 	// Add reference to our generated Info.plist file
-	strnew += "\nINFOPLIST_FILE = " + binary_path + "-Info.plist;\n";
-
+	strnew += make_xcconfig_setting("INFOPLIST_FILE", binary_path + "-Info.plist");
 	// Set the bundle identifier and team from export options
-	String bundle_identifier = p_preset->get("application/identifier");
-	strnew += "PRODUCT_BUNDLE_IDENTIFIER = " + bundle_identifier + ";\n";
-	strnew += "DEVELOPMENT_TEAM = " + (String)p_preset->get("application/app_store_team_id") + ";\n";
-
+	strnew += make_xcconfig_setting("PRODUCT_BUNDLE_IDENTIFIER", p_preset->get("application/identifier"));
+	strnew += make_xcconfig_setting("DEVELOPMENT_TEAM", p_preset->get("application/app_store_team_id"));
+	
 	// Pass build settings from Godot export options
-	strnew += "ARCHS = " + p_config.architectures + ";\n";
-	strnew += "FRAMEWORK_SEARCH_PATHS = $(inherited) " + p_config.binary_name + ";\n";
+	strnew += make_xcconfig_setting("ARCHS", p_config.architectures);
+	strnew += make_xcconfig_setting("FRAMEWORK_SEARCH_PATHS", "$(inherited) " + p_config.binary_name);
 
 	// Pass linker flags
-	strnew += "OTHER_LDFLAGS = $(inherited)";
 	if (p_config.linker_flags.length() != 0) {
-		strnew += " " + p_config.linker_flags;
+		strnew += make_xcconfig_setting("OTHER_LDFLAGS", "$(inherited) " + p_config.linker_flags);
 	}
-	strnew += ";\n";
 
 	// if enabled, add development (sandbox) APNS entitlements
 	if ((bool)p_preset->get("capabilities/push_notifications")) {
-		strnew += "\n\"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]\" = " + binary_path + ".entitlements;\n";
+		strnew += make_xcconfig_setting("CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]", binary_path + ".entitlements");
 	}
+
+	// Add versions to xcconfig for use in build settings
+	strnew += make_xcconfig_setting("GODOT_VERSION", p_preset->get("application/version"));
+	strnew += make_xcconfig_setting("GODOT_VERSION_NAME", p_preset->get("application/public_version"));
 
 	print_line("Appending values to godot.xcconfig: " + strnew);
 
@@ -388,8 +367,6 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 			strnew += lines[i].replace("$version", p_preset->get("application/version")) + "\n";
 		} else if (lines[i].find("$copyright") != -1) {
 			strnew += lines[i].replace("$copyright", p_preset->get("application/copyright")) + "\n";
-		} else if (lines[i].find("$team_id") != -1) {
-			strnew += lines[i].replace("$team_id", p_preset->get("application/app_store_team_id")) + "\n";
 		} else if (lines[i].find("$export_method") != -1) {
 			int export_method = p_preset->get(p_debug ? "application/export_method_debug" : "application/export_method_release");
 			strnew += lines[i].replace("$export_method", export_method_string[export_method]) + "\n";
@@ -462,13 +439,20 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 		}
 	}
 
-	// !BAS! I'm assuming the 9 in the original code was a typo. I've added -1 or else it seems to also be adding our terminating zero...
-	// should apply the same fix in our OSX export.
+	// Truncate the file and write appropriately
 	CharString cs = strnew.utf8();
 	pfile.resize(cs.size() - 1);
 	for (int i = 0; i < cs.size() - 1; i++) {
 		pfile.write[i] = cs[i];
 	}
+}
+
+void EditorExportPlatformIOS::_fix_project_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug) {
+
+}
+
+void EditorExportPlatformIOS::_fix_plist_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug) {
+
 }
 
 String EditorExportPlatformIOS::_get_additional_plist_content() {
@@ -577,28 +561,6 @@ Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_pr
 	CharString sizes_utf8 = sizes.utf8();
 	sizes_file->store_buffer((const uint8_t *)sizes_utf8.get_data(), sizes_utf8.length());
 	memdelete(sizes_file);
-
-	return OK;
-}
-
-Error EditorExportPlatformIOS::_export_loading_screens(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir) {
-	DirAccess *da = DirAccess::open(p_dest_dir);
-	ERR_FAIL_COND_V_MSG(!da, ERR_CANT_OPEN, "Cannot open directory '" + p_dest_dir + "'.");
-
-	for (uint64_t i = 0; i < sizeof(loading_screen_infos) / sizeof(loading_screen_infos[0]); ++i) {
-		LoadingScreenInfo info = loading_screen_infos[i];
-		String loading_screen_file = p_preset->get(info.preset_key);
-		if (loading_screen_file.size() > 0) {
-			Error err = da->copy(loading_screen_file, p_dest_dir + info.export_name);
-			if (err) {
-				memdelete(da);
-				String err_str = String("Failed to export loading screen (") + info.preset_key + ") from path '" + loading_screen_file + "'.";
-				ERR_PRINT(err_str.utf8().get_data());
-				return err;
-			}
-		}
-	}
-	memdelete(da);
 
 	return OK;
 }
@@ -872,17 +834,20 @@ Error EditorExportPlatformIOS::_export_additional_assets(const String &p_out_dir
 }
 
 Vector<String> EditorExportPlatformIOS::_get_preset_architectures(const Ref<EditorExportPreset> &p_preset) {
-	Vector<ExportArchitecture> all_archs = _get_supported_architectures();
 	Vector<String> enabled_archs;
+
+	Vector<ExportArchitecture> all_archs = _get_supported_architectures();
 	for (int i = 0; i < all_archs.size(); ++i) {
-		bool is_enabled = p_preset->get("architectures/" + all_archs[i].name);
-		if (is_enabled) {
+		// Is this specific architecture enabled in our export settings?
+		if (p_preset->get("architectures/" + all_archs[i].name)) {
 			enabled_archs.push_back(all_archs[i].name);
 		}
 	}
+
 	return enabled_archs;
 }
 
+// Modifies xcodeproj file to add modules based on capabilities
 void EditorExportPlatformIOS::add_module_code(const Ref<EditorExportPreset> &p_preset, EditorExportPlatformIOS::IOSConfigData &p_config_data, const String &p_name, const String &p_fid, const String &p_gid) {
 	if ((bool)p_preset->get("capabilities/" + p_name)) {
 		//add module static library
@@ -909,7 +874,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	EditorProgress ep("export", "Exporting for iOS", 5, true);
 
 	String team_id = p_preset->get("application/app_store_team_id");
-	ERR_FAIL_COND_V_MSG(team_id.length() == 0, ERR_CANT_OPEN, "App Store Team ID not specified - cannot configure the project.");
+	ERR_FAIL_COND_V_MSG(team_id.length() == 0, ERR_CANT_OPEN, "App Store Team ID not specified! Cannot configure code signing for the project.");
 
 	if (p_debug)
 		src_pkg_name = p_preset->get("custom_package/debug");
@@ -933,17 +898,22 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	if (da) {
 		String current_dir = da->get_current_dir();
 
+		// TODO: Find a less destructive way to handle this path
+
 		// remove leftovers from last export so they don't interfere
 		// in case some files are no longer needed
+		// Wipe Xcode project
 		if (da->change_dir(dest_dir + binary_name + ".xcodeproj") == OK) {
 			da->erase_contents_recursive();
 		}
+		// Wipe Source
 		if (da->change_dir(dest_dir + binary_name) == OK) {
 			da->erase_contents_recursive();
 		}
 
 		da->change_dir(current_dir);
 
+		// Recreate the source folder if missing
 		if (!da->dir_exists(dest_dir + binary_name)) {
 			Error err = da->make_dir(dest_dir + binary_name);
 			if (err) {
@@ -970,13 +940,13 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	String library_to_use = "libgodot.iphone." + String(p_debug ? "debug" : "release") + ".fat.a";
 
 	print_line("Static library: " + library_to_use);
-	String pkg_name;
-	if (p_preset->get("application/name") != "")
-		pkg_name = p_preset->get("application/name"); // app_name
-	else if (String(ProjectSettings::get_singleton()->get("application/config/name")) != "")
+	String pkg_name = p_preset->get("application/name");
+	if (pkg_name == "") {
 		pkg_name = String(ProjectSettings::get_singleton()->get("application/config/name"));
-	else
-		pkg_name = "Unnamed";
+		if (pkg_name == "") {
+			pkg_name = "Unnamed";
+		}
+	}
 
 	bool found_library = false;
 	int total_size = 0;
@@ -1113,7 +1083,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 				unzClose(src_pkg_zip);
 				memdelete(tmp_app_path);
 				return ERR_CANT_CREATE;
-			};
+			}
 			f->store_buffer(data.ptr(), data.size());
 			f->close();
 			memdelete(f);
@@ -1133,7 +1103,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	unzClose(src_pkg_zip);
 
 	if (!found_library) {
-		ERR_PRINTS("Requested template library '" + library_to_use + "' not found. It might be missing from your template archive.");
+		ERR_PRINTS("Requested template library '" + library_to_use + "' not found. It might be missing from your template .ZIP archive.");
 		memdelete(tmp_app_path);
 		return ERR_FILE_NOT_FOUND;
 	}
@@ -1148,10 +1118,6 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 		return err;
 
 	err = _export_icons(p_preset, iconset_dir);
-	if (err)
-		return err;
-
-	err = _export_loading_screens(p_preset, dest_dir + binary_name + "/Images.xcassets/LaunchImage.launchimage/");
 	if (err)
 		return err;
 
@@ -1243,31 +1209,25 @@ bool EditorExportPlatformIOS::can_export(const Ref<EditorExportPreset> &p_preset
 		}
 	}
 
-	bool valid = !r_missing_templates;
-
-	String team_id = p_preset->get("application/app_store_team_id");
-	if (team_id.length() == 0) {
+	if (p_preset->get("application/app_store_team_id") == "") {
 		err += TTR("App Store Team ID not specified - cannot configure the project.") + "\n";
-		valid = false;
 	}
 
-	String identifier = p_preset->get("application/identifier");
 	String pn_err;
-	if (!is_package_name_valid(identifier, &pn_err)) {
-		err += TTR("Invalid Identifier:") + " " + pn_err + "\n";
-		valid = false;
+	if (!is_package_name_valid(p_preset->get("application/identifier"), &pn_err)) {
+		err += TTR("Invalid Identifier: ") + pn_err + "\n";
 	}
 
 	String etc_error = test_etc2();
-	if (etc_error != String()) {
-		valid = false;
+	if (etc_error != "") {
 		err += etc_error;
 	}
 
-	if (!err.empty())
+	if (!err.empty()) {
 		r_error = err;
-
-	return valid;
+		return false;
+	}
+	return true;
 }
 
 EditorExportPlatformIOS::EditorExportPlatformIOS() {
