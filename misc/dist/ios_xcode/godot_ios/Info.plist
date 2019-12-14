@@ -3,28 +3,25 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleExecutable</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
-
 	<key>CFBundleShortVersionString</key>
-	<string>$short_version</string>
+	<string>$(GODOT_VERSION_NAME)</string>
 	<key>CFBundleVersion</key>
-	<string>$version</string>
-
+	<string>$(GODOT_BUILD_NUMBER)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
 	
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	$docs_in_place
@@ -36,6 +33,7 @@
 	<string>$photolibrary_usage_description</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>$microphone_usage_description</string>
+
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UIStatusBarHidden</key>

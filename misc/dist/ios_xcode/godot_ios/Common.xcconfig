@@ -4,8 +4,6 @@
 // instead.
 //
 
-#include "Warnings.xcconfig"
-
 SDKROOT = iphoneos;
 //ARCHS = $(ARCHS_STANDARD)
 //VALID_ARCHS = $(ARCHS_STANDARD) x86_64;

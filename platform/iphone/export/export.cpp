@@ -246,7 +246,7 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/name", PROPERTY_HINT_PLACEHOLDER_TEXT, "Game Name"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/info"), "Made with Godot Engine"));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/identifier", PROPERTY_HINT_PLACEHOLDER_TEXT, "com.example.game"), ""));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/public_version"), "1.0.0"));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/build_number"), "1"));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/version"), "1.0.0"));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/copyright"), ""));
 
@@ -302,11 +302,7 @@ void EditorExportPlatformIOS::_append_to_file(const Ref<EditorExportPreset> &p_p
 	// Pass build settings from Godot export options
 	strnew += make_xcconfig_setting("ARCHS", p_config.architectures);
 	strnew += make_xcconfig_setting("FRAMEWORK_SEARCH_PATHS", "$(inherited) " + p_config.binary_name);
-
-	// Pass linker flags
-	if (p_config.linker_flags.length() != 0) {
-		strnew += make_xcconfig_setting("OTHER_LDFLAGS", "$(GODOT_DEFAULT_LDFLAGS) " + p_config.linker_flags);
-	}
+	strnew += make_xcconfig_setting("OTHER_LDFLAGS", "$(inherited) $(GODOT_DEFAULT_LDFLAGS) " + p_config.linker_flags);
 
 	// if enabled, add development (sandbox) APNS entitlements
 	if ((bool)p_preset->get("capabilities/push_notifications")) {
@@ -314,8 +310,8 @@ void EditorExportPlatformIOS::_append_to_file(const Ref<EditorExportPreset> &p_p
 	}
 
 	// Add versions to xcconfig for use in build settings
-	strnew += make_xcconfig_setting("GODOT_VERSION", p_preset->get("application/version"));
-	strnew += make_xcconfig_setting("GODOT_VERSION_NAME", p_preset->get("application/public_version"));
+	strnew += make_xcconfig_setting("GODOT_BUILD_NUMBER", p_preset->get("application/build_number"));
+	strnew += make_xcconfig_setting("GODOT_VERSION_NAME", p_preset->get("application/version"));
 
 	print_line("Appending values to godot.xcconfig: " + strnew);
 
@@ -364,10 +360,6 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 			strnew += lines[i].replace("$info", p_preset->get("application/info")) + "\n";
 		} else if (lines[i].find("$identifier") != -1) {
 			strnew += lines[i].replace("$identifier", p_preset->get("application/identifier")) + "\n";
-		} else if (lines[i].find("$short_version") != -1) {
-			strnew += lines[i].replace("$short_version", p_preset->get("application/public_version")) + "\n";
-		} else if (lines[i].find("$version") != -1) {
-			strnew += lines[i].replace("$version", p_preset->get("application/version")) + "\n";
 		} else if (lines[i].find("$copyright") != -1) {
 			strnew += lines[i].replace("$copyright", p_preset->get("application/copyright")) + "\n";
 		} else if (lines[i].find("$export_method") != -1) {
@@ -704,7 +696,7 @@ void EditorExportPlatformIOS::_add_assets_to_project(const Ref<EditorExportPrese
 
 	// We do need our ARKit framework
 	if ((bool)p_preset->get("capabilities/arkit")) {
-		
+
 	}
 
 	String str = String::utf8((const char *)p_project_data.ptr(), p_project_data.size());
