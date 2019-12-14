@@ -106,6 +106,8 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	Error _export_additional_assets(const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, Vector<IOSExportAsset> &r_exported_assets);
 	Error _export_additional_assets(const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<IOSExportAsset> &r_exported_assets);
 
+	String get_binary_path(const EditorExportPlatformIOS::IOSConfigData &p_config);
+
 	bool is_package_name_valid(const String &p_package, String *r_error = NULL) const {
 
 		String pname = p_package;
@@ -121,7 +123,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 			}
 		} else if (pname.length() > 255) {
 			if (r_error) {
-				*r_error = TTR("Identifier is too long. Must be less than 255 characters.")
+				*r_error = TTR("Identifier is too long. Must be less than 255 characters.");
 			}
 		}
 
@@ -284,16 +286,18 @@ String make_xcconfig_setting(String key, Variant value) {
 	return key + " = " + String(value) + ";\n";
 }
 
+String EditorExportPlatformIOS::get_binary_path(const EditorExportPlatformIOS::IOSConfigData &p_config) {
+	return p_config.binary_name + "/" + p_config.binary_name;
+}
+
 void EditorExportPlatformIOS::_append_to_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug) {
+	// Load existing file contents to memory
 	String str;
-	String strnew;
 	str.parse_utf8((const char *)pfile.ptr(), pfile.size());
 
-	String binary_path = p_config.binary_name + "/" + p_config.binary_name;
-
-	// Add reference to our generated Info.plist file
-	strnew += make_xcconfig_setting("INFOPLIST_FILE", binary_path + "-Info.plist");
-	// Set the bundle identifier and team from export options
+	// Create a new string to append to original values
+	String strnew;
+	strnew += make_xcconfig_setting("INFOPLIST_FILE", get_binary_path(p_config) + "-Info.plist");
 	strnew += make_xcconfig_setting("PRODUCT_BUNDLE_IDENTIFIER", p_preset->get("application/identifier"));
 	strnew += make_xcconfig_setting("DEVELOPMENT_TEAM", p_preset->get("application/app_store_team_id"));
 	
@@ -303,12 +307,12 @@ void EditorExportPlatformIOS::_append_to_file(const Ref<EditorExportPreset> &p_p
 
 	// Pass linker flags
 	if (p_config.linker_flags.length() != 0) {
-		strnew += make_xcconfig_setting("OTHER_LDFLAGS", "$(inherited) " + p_config.linker_flags);
+		strnew += make_xcconfig_setting("OTHER_LDFLAGS", "$(GODOT_DEFAULT_LDFLAGS) " + p_config.linker_flags);
 	}
 
 	// if enabled, add development (sandbox) APNS entitlements
 	if ((bool)p_preset->get("capabilities/push_notifications")) {
-		strnew += make_xcconfig_setting("CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]", binary_path + ".entitlements");
+		strnew += make_xcconfig_setting("CODE_SIGN_ENTITLEMENTS[config=Debug][sdk=iphoneos*]", get_binary_path(p_config) + ".entitlements");
 	}
 
 	// Add versions to xcconfig for use in build settings
@@ -448,14 +452,6 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 	}
 }
 
-void EditorExportPlatformIOS::_fix_project_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug) {
-
-}
-
-void EditorExportPlatformIOS::_fix_plist_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug) {
-
-}
-
 String EditorExportPlatformIOS::_get_additional_plist_content() {
 	Vector<Ref<EditorExportPlugin> > export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	String result;
@@ -526,10 +522,12 @@ Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_pr
 
 	for (uint64_t i = 0; i < (sizeof(icon_infos) / sizeof(icon_infos[0])); ++i) {
 		IconInfo info = icon_infos[i];
+		
 		String icon_path = p_preset->get(info.preset_key);
 		if (icon_path == "") {
 			continue;
 		}
+
 		Error err = da->copy(icon_path, p_iconset_dir + info.export_name);
 		if (err) {
 			memdelete(da);
@@ -1110,6 +1108,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	}
 
 	String iconset_dir = dest_dir + binary_name + "/Images.xcassets/AppIcon.appiconset/";
+	print_line("Writing to iconset_dir: " + iconset_dir);
 	err = OK;
 	if (!tmp_app_path->dir_exists(iconset_dir)) {
 		err = tmp_app_path->make_dir_recursive(iconset_dir);

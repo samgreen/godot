@@ -17,6 +17,6 @@ GCC_C_LANGUAGE_STANDARD = gnu99;
 // Disable legacy-compatible header searching
 ALWAYS_SEARCH_USER_PATHS = NO
 // These frameworks will always be linked against, regardless of feature set selected
-OTHER_LDFLAGS = -weak_framework AudioToolbox -weak_framework CoreAudio -weak_framework CoreMedia -weak_framework CoreMotion -weak_framework GameController -weak_framework MediaPlayer -weak_framework QuartzCore -weak_framework Security -weak_framework SystemConfiguration -weak_framework GameKit -weak_framework StoreKit -weak_framework AVFoundation -weak_framework Foundation -weak_framework CoreGraphics -weak_framework CoreVideo -weak_framework UIKit -weak_framework GLKit -weak_framework OpenGLES
+GODOT_DEFAULT_LDFLAGS = -weak_framework AudioToolbox -weak_framework CoreAudio -weak_framework CoreMedia -weak_framework CoreMotion -weak_framework GameController -weak_framework MediaPlayer -weak_framework QuartzCore -weak_framework Security -weak_framework SystemConfiguration -weak_framework GameKit -weak_framework StoreKit -weak_framework AVFoundation -weak_framework Foundation -weak_framework CoreGraphics -weak_framework CoreVideo -weak_framework UIKit -weak_framework GLKit -weak_framework OpenGLES
 
 
