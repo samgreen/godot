@@ -67,7 +67,7 @@
 		D0BCFE3B18AEBDA2004A7AAE /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		D0BCFE3D18AEBDA2004A7AAE /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		D0BCFE3F18AEBDA2004A7AAE /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
-		D0BCFE4318AEBDA2004A7AAE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
+		D0BCFE4318AEBDA2004A7AAE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "$binary/Info.plist"; sourceTree = "<group>"; };
 		D0BCFE7718AEBFEB004A7AAE /* $binary.pck */ = {isa = PBXFileReference; lastKnownFileType = file; path = $binary.pck; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -258,6 +258,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 87D30C9722235A2200E688DC /* godot.xcconfig */;
 			buildSettings = {
+				INFOPLIST_FILE = "$(PRODUCT_NAME)/Info.plist";
 				COPY_PHASE_STRIP = NO;
 				STRIP_INSTALLED_PRODUCT = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -275,6 +276,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 87D30C9722235A2200E688DC /* godot.xcconfig */;
 			buildSettings = {
+				INFOPLIST_FILE = "$(PRODUCT_NAME)/Info.plist";
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				VALIDATE_PRODUCT = YES;
@@ -286,7 +288,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CE442D0F23A4D2EC00C6F4D9 /* Debug.xcconfig */;
 			buildSettings = {
-				INFOPLIST_FILE = "$(SOURCE_ROOT)/Info.plist";
+				INFOPLIST_FILE = "$(PRODUCT_NAME)/Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -298,7 +300,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CE442D0D23A4D2EC00C6F4D9 /* Release.xcconfig */;
 			buildSettings = {
-				INFOPLIST_FILE = "$(SOURCE_ROOT)/Info.plist";
+				INFOPLIST_FILE = "$(PRODUCT_NAME)/Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",

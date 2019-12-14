@@ -3,16 +3,10 @@
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>$export_method</string>
+    <string>ad-hoc</string>
 
-    <key>teamID</key>
-    <string>$team_id</string>
-
-    <key>provisioningProfiles</key>
-    <dict>
-        <key>$identifier</key>
-        <string>$provisioning_profile_uuid</string>
-    </dict>
+    <key>signingStyle</key>
+	<string>automatic</string>
 
     <key>compileBitcode</key>
     <false/>

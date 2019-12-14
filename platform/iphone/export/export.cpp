@@ -949,7 +949,6 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	Set<String> files_to_parse;
 	files_to_parse.insert("godot_ios/Info.plist");
 	files_to_parse.insert(project_file);
-	files_to_parse.insert("godot_ios/export_options.plist");
 	files_to_parse.insert("godot_ios/dummy.cpp");
 	files_to_parse.insert("godot_ios.xcodeproj/project.xcworkspace/contents.xcworkspacedata");
 	files_to_parse.insert("godot_ios.xcodeproj/xcshareddata/xcschemes/godot_ios.xcscheme");
@@ -1148,7 +1147,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	String archive_path = p_path.get_basename() + ".xcarchive";
 	List<String> archive_args;
 	archive_args.push_back("-project");
-	archive_args.push_back(dest_dir + binary_name + ".xcodeproj");
+	archive_args.push_back(get_xcodeproj_path(p_path));
 	archive_args.push_back("-scheme");
 	archive_args.push_back(binary_name);
 	archive_args.push_back("-sdk");
@@ -1160,6 +1159,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	archive_args.push_back("archive");
 	archive_args.push_back("-archivePath");
 	archive_args.push_back(archive_path);
+	archive_args.push_back("-allowProvisioningUpdates");
 	err = OS::get_singleton()->execute("xcodebuild", archive_args, true);
 	ERR_FAIL_COND_V(err, err);
 
@@ -1171,7 +1171,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	export_args.push_back("-archivePath");
 	export_args.push_back(archive_path);
 	export_args.push_back("-exportOptionsPlist");
-	export_args.push_back(dest_dir + binary_name + "/export_options.plist");
+	export_args.push_back(get_core_path(p_path) + "/export_options_" + String(p_debug ? "ad_hoc" : "app_store") + ".plist");
 	export_args.push_back("-allowProvisioningUpdates");
 	export_args.push_back("-exportPath");
 	export_args.push_back(dest_dir);
