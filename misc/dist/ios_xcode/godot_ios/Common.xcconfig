@@ -20,6 +20,6 @@ INFOPLIST_FILE = Info.plist
 // Disable legacy-compatible header searching
 ALWAYS_SEARCH_USER_PATHS = NO
 // These frameworks will always be linked against, regardless of feature set selected
-GODOT_DEFAULT_LDFLAGS = -framework AudioToolbox -framework CoreAudio -framework CoreMedia -framework CoreMotion -framework GameController -framework MediaPlayer -framework QuartzCore -framework Security -framework SystemConfiguration -framework GameKit -framework StoreKit -framework AVFoundation -framework Foundation -framework CoreGraphics -framework CoreVideo -framework UIKit -framework GLKit -framework OpenGLES
+GODOT_LDFLAGS = -framework AudioToolbox -framework CoreAudio -framework CoreMedia -framework CoreMotion -framework GameController -framework MediaPlayer -framework QuartzCore -framework Security -framework SystemConfiguration -framework GameKit -framework StoreKit -framework AVFoundation -framework Foundation -framework CoreGraphics -framework CoreVideo -framework UIKit -framework GLKit -framework OpenGLES
 
 
