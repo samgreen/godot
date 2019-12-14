@@ -14,6 +14,8 @@ CLANG_CXX_LANGUAGE_STANDARD = gnu++0x;
 CLANG_CXX_LIBRARY = libc++;
 GCC_C_LANGUAGE_STANDARD = gnu99;
 
+PROVISIONING_PROFILE_SPECIFIER = Automatic
+
 // Disable legacy-compatible header searching
 ALWAYS_SEARCH_USER_PATHS = NO
 // These frameworks will always be linked against, regardless of feature set selected
