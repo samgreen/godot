@@ -702,29 +702,9 @@ void EditorExportPlatformIOS::_add_assets_to_project(const Ref<EditorExportPrese
 		pbx_files += file_info_format.format(format_dict, "$_");
 	}
 
-	// Note, frameworks like gamekit are always included in our project.pbxprof file
-	// even if turned off in capabilities.
-
 	// We do need our ARKit framework
 	if ((bool)p_preset->get("capabilities/arkit")) {
-		String build_id = (++current_id).str();
-		String ref_id = (++current_id).str();
-
-		if (pbx_frameworks_build.length() > 0) {
-			pbx_frameworks_build += ",\n";
-			pbx_frameworks_refs += ",\n";
-		}
-
-		pbx_frameworks_build += build_id;
-		pbx_frameworks_refs += ref_id;
-
-		Dictionary format_dict;
-		format_dict["build_id"] = build_id;
-		format_dict["ref_id"] = ref_id;
-		format_dict["name"] = "ARKit.framework";
-		format_dict["file_path"] = "System/Library/Frameworks/ARKit.framework";
-		format_dict["file_type"] = "wrapper.framework";
-		pbx_files += file_info_format.format(format_dict, "$_");
+		
 	}
 
 	String str = String::utf8((const char *)p_project_data.ptr(), p_project_data.size());
