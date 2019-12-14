@@ -21,6 +21,10 @@
 		DEADBEEF2F582BE20003B888 /* $binary.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DEADBEEF1F582BE20003B888 /* $binary.a */; };
 		$modules_buildfile
 		1FF8DBB11FBA9DE1009DE660 /* dummy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1FF8DBB01FBA9DE1009DE660 /* dummy.cpp */; };
+		CE442D1123A4D2EC00C6F4D9 /* Release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CE442D0D23A4D2EC00C6F4D9 /* Release.xcconfig */; };
+		CE442D1223A4D2EC00C6F4D9 /* Warnings.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CE442D0E23A4D2EC00C6F4D9 /* Warnings.xcconfig */; };
+		CE442D1323A4D2EC00C6F4D9 /* Debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CE442D0F23A4D2EC00C6F4D9 /* Debug.xcconfig */; };
+		CE442D1423A4D2EC00C6F4D9 /* Common.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CE442D1023A4D2EC00C6F4D9 /* Common.xcconfig */; };
 		1FF4C1851F584E3F00A41E41 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FF4C1841F584E3F00A41E41 /* GameKit.framework */; };
 		1FF4C1871F584E5600A41E41 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FF4C1861F584E5600A41E41 /* StoreKit.framework */; };
 		1FF4C1871F584E7600A41E41 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FF4C1881F584E7600A41E41 /* StoreKit.framework */; };
@@ -30,7 +34,6 @@
 		D0BCFE3C18AEBDA2004A7AAE /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0BCFE3B18AEBDA2004A7AAE /* UIKit.framework */; };
 		D0BCFE3E18AEBDA2004A7AAE /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0BCFE3D18AEBDA2004A7AAE /* GLKit.framework */; };
 		D0BCFE4018AEBDA2004A7AAE /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0BCFE3F18AEBDA2004A7AAE /* OpenGLES.framework */; };
-		D0BCFE4618AEBDA2004A7AAE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0BCFE4418AEBDA2004A7AAE /* InfoPlist.strings */; };
 		D0BCFE7818AEBFEB004A7AAE /* $binary.pck in Resources */ = {isa = PBXBuildFile; fileRef = D0BCFE7718AEBFEB004A7AAE /* $binary.pck */; };
 /* End PBXBuildFile section */
 
@@ -53,6 +56,10 @@
 		1FF8DBB01FBA9DE1009DE660 /* dummy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dummy.cpp; sourceTree = "<group>"; };
 		D07CD44D1C5D589C00B7FB28 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		87D30C9722235A2200E688DC /* godot.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = godot.xcconfig; sourceTree = "<group>"; };
+		CE442D0D23A4D2EC00C6F4D9 /* Release.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		CE442D0E23A4D2EC00C6F4D9 /* Warnings.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
+		CE442D0F23A4D2EC00C6F4D9 /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		CE442D1023A4D2EC00C6F4D9 /* Common.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Common.xcconfig; sourceTree = "<group>"; };
 		D0BCFE3418AEBDA2004A7AAE /* $binary.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = $binary.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0BCFE3718AEBDA2004A7AAE /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0BCFE3918AEBDA2004A7AAE /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -61,7 +68,6 @@
 		D0BCFE3D18AEBDA2004A7AAE /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		D0BCFE3F18AEBDA2004A7AAE /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		D0BCFE4318AEBDA2004A7AAE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
-		D0BCFE4518AEBDA2004A7AAE /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D0BCFE7718AEBFEB004A7AAE /* $binary.pck */ = {isa = PBXFileReference; lastKnownFileType = file; path = $binary.pck; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -152,7 +158,6 @@
 			children = (
 				D07CD44D1C5D589C00B7FB28 /* Images.xcassets */,
 				D0BCFE4218AEBDA2004A7AAE /* Supporting Files */,
-				1FF8DBB01FBA9DE1009DE660 /* dummy.cpp */,
 				87D30C9722235A2200E688DC /* godot.xcconfig */,
 			);
 			path = $binary;
@@ -161,8 +166,12 @@
 		D0BCFE4218AEBDA2004A7AAE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				CE442D1023A4D2EC00C6F4D9 /* Common.xcconfig */,
+				CE442D0F23A4D2EC00C6F4D9 /* Debug.xcconfig */,
+				CE442D0D23A4D2EC00C6F4D9 /* Release.xcconfig */,
+				CE442D0E23A4D2EC00C6F4D9 /* Warnings.xcconfig */,
 				D0BCFE4318AEBDA2004A7AAE /* Info.plist */,
-				D0BCFE4418AEBDA2004A7AAE /* InfoPlist.strings */,
+				1FF8DBB01FBA9DE1009DE660 /* dummy.cpp */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -193,95 +202,17 @@
 		D0BCFE2C18AEBDA2004A7AAE /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0500;
+				LastUpgradeCheck = 1120;
 				ORGANIZATIONNAME = GodotEngine;
 				TargetAttributes = {
 					D0BCFE3318AEBDA2004A7AAE = {
-						DevelopmentTeam = $team_id;
-						ProvisioningStyle = Automatic;
-						SystemCapabilities = {
-							com.apple.AccessWiFi = {
-								enabled = 0;
-							};
-							com.apple.ApplePay = {
-								enabled = 0;
-							};
-							com.apple.ApplicationGroups.iOS = {
-								enabled = 0;
-							};
-							com.apple.AutoFillCredentialProvider = {
-								enabled = 0;
-							};
-							com.apple.BackgroundModes = {
-								enabled = 0;
-							};
-							com.apple.ClassKit = {
-								enabled = 0;
-							};
-							com.apple.DataProtection = {
-								enabled = 0;
-							};
-							com.apple.GameCenter.iOS = {
-								enabled = $game_center;
-							};
-							com.apple.HealthKit = {
-								enabled = 0;
-							};
-							com.apple.HomeKit = {
-								enabled = 0;
-							};
-							com.apple.HotspotConfiguration = {
-								enabled = 0;
-							};
-							com.apple.InAppPurchase = {
-								enabled = $in_app_purchases;
-							};
-							com.apple.InterAppAudio = {
-								enabled = 0;
-							};
-							com.apple.Keychain = {
-								enabled = 0;
-							};
-							com.apple.Maps.iOS = {
-								enabled = 0;
-							};
-							com.apple.Multipath = {
-								enabled = 0;
-							};
-							com.apple.NearFieldCommunicationTagReading = {
-								enabled = 0;
-							};
-							com.apple.NetworkExtensions.iOS = {
-								enabled = 0;
-							};
-							com.apple.Push = {
-								enabled = $push_notifications;
-							};
-							com.apple.SafariKeychain = {
-								enabled = 0;
-							};
-							com.apple.Siri = {
-								enabled = 0;
-							};
-							com.apple.VPNLite = {
-								enabled = 0;
-							};
-							com.apple.WAC = {
-								enabled = 0;
-							};
-							com.apple.Wallet = {
-								enabled = 0;
-							};
-							com.apple.iCloud = {
-								enabled = 0;
-							};
-						};
+						CreatedOnToolsVersion = 11.2.1;
 					};
 				};
 			};
 			buildConfigurationList = D0BCFE2F18AEBDA2004A7AAE /* Build configuration list for PBXProject "$binary" */;
-			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
@@ -305,7 +236,6 @@
 				1F1575721F582BE20003B888 /* dylibs in Resources */,
 				D07CD44E1C5D589C00B7FB28 /* Images.xcassets in Resources */,
 				D0BCFE7818AEBFEB004A7AAE /* $binary.pck in Resources */,
-				D0BCFE4618AEBDA2004A7AAE /* InfoPlist.strings in Resources */,
 				$additional_pbx_resources_build
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -322,17 +252,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		D0BCFE4418AEBDA2004A7AAE /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D0BCFE4518AEBDA2004A7AAE /* en */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		D0BCFE6F18AEBDA3004A7AAE /* Debug */ = {
@@ -365,8 +284,9 @@
 		};
 		D0BCFE7218AEBDA3004A7AAE /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 87D30C9722235A2200E688DC /* godot.xcconfig */;
+			baseConfigurationReference = CE442D0F23A4D2EC00C6F4D9 /* Debug.xcconfig */;
 			buildSettings = {
+				INFOPLIST_FILE = "$(SOURCE_ROOT)/Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -376,8 +296,9 @@
 		};
 		D0BCFE7318AEBDA3004A7AAE /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 87D30C9722235A2200E688DC /* godot.xcconfig */;
+			baseConfigurationReference = CE442D0D23A4D2EC00C6F4D9 /* Release.xcconfig */;
 			buildSettings = {
+				INFOPLIST_FILE = "$(SOURCE_ROOT)/Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -395,7 +316,7 @@
 				D0BCFE7018AEBDA3004A7AAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		D0BCFE7118AEBDA3004A7AAE /* Build configuration list for PBXNativeTarget "$binary" */ = {
 			isa = XCConfigurationList;
@@ -404,7 +325,7 @@
 				D0BCFE7318AEBDA3004A7AAE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
