@@ -495,22 +495,7 @@ struct IconInfo {
 };
 
 static const IconInfo icon_infos[] = {
-	{ "optional_icons/iphone_120x120", "iphone", "Icon-120.png", "120", "2x", "60x60" },
-	{ "optional_icons/iphone_120x120", "iphone", "Icon-120.png", "120", "3x", "40x40" },
-	{ "optional_icons/ipad_76x76", "ipad", "Icon-76.png", "76", "1x", "76x76" },
-	{ "optional_icons/app_store_1024x1024", "ios-marketing", "Icon-1024.png", "1024", "1x", "1024x1024" },
-
-	{ "optional_icons/iphone_180x180", "iphone", "Icon-180.png", "180", "3x", "60x60" },
-
-	{ "optional_icons/ipad_152x152", "ipad", "Icon-152.png", "152", "2x", "76x76" },
-
-	{ "optional_icons/ipad_167x167", "ipad", "Icon-167.png", "167", "2x", "83.5x83.5" },
-
-	{ "optional_icons/spotlight_40x40", "ipad", "Icon-40.png", "40", "1x", "40x40" },
-
-	{ "optional_icons/spotlight_80x80", "iphone", "Icon-80.png", "80", "2x", "40x40" },
-	{ "optional_icons/spotlight_80x80", "ipad", "Icon-80.png", "80", "2x", "40x40" }
-
+	{ "application/icon_1024x1024", "ios-marketing", "Icon-1024.png", "1024", "1x", "1024x1024"}
 };
 
 Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir) {
@@ -522,11 +507,12 @@ Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_pr
 
 	for (uint64_t i = 0; i < (sizeof(icon_infos) / sizeof(icon_infos[0])); ++i) {
 		IconInfo info = icon_infos[i];
-		
+
 		String icon_path = p_preset->get(info.preset_key);
-		if (icon_path == "") {
+		if (!p_preset->get(info.preset_key) || icon_path == "") {
 			continue;
 		}
+		print_line("Found AppIcon at path: " + icon_path);
 
 		Error err = da->copy(icon_path, p_iconset_dir + info.export_name);
 		if (err) {
@@ -610,7 +596,7 @@ struct CodesignData {
 Error EditorExportPlatformIOS::_codesign(String p_file, void *p_userdata) {
 	if (p_file.ends_with(".dylib")) {
 		CodesignData *data = (CodesignData *)p_userdata;
-		print_line(String("Signing ") + p_file);
+		print_line(String("Code Signing ") + p_file);
 		List<String> codesign_args;
 		codesign_args.push_back("-f");
 		codesign_args.push_back("-s");
@@ -667,6 +653,7 @@ struct ExportLibsData {
 	String dest_dir;
 };
 
+// TODO: Find a way to minimize remove the body of this function
 void EditorExportPlatformIOS::_add_assets_to_project(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_project_data, const Vector<IOSExportAsset> &p_additional_assets) {
 	Vector<Ref<EditorExportPlugin> > export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	Vector<String> frameworks;
@@ -863,6 +850,14 @@ void EditorExportPlatformIOS::add_module_code(const Ref<EditorExportPreset> &p_p
 	}
 }
 
+String get_core_path(const String &p_path) {
+	return p_path.get_base_dir() + "/" + p_path.get_file().get_basename();
+}
+
+String get_xcodeproj_path(const String &p_path) {
+	return get_core_path(p_path) + ".xcodeproj";
+}
+
 Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags) {
 	ExportNotifier notifier(*this, p_preset, p_debug, p_path, p_flags);
 
@@ -902,7 +897,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 		// remove leftovers from last export so they don't interfere
 		// in case some files are no longer needed
 		// Wipe Xcode project
-		if (da->change_dir(dest_dir + binary_name + ".xcodeproj") == OK) {
+		if (da->change_dir(get_xcodeproj_path(p_path)) == OK) {
 			da->erase_contents_recursive();
 		}
 		// Wipe Source
@@ -937,8 +932,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	}
 
 	String library_to_use = "libgodot.iphone." + String(p_debug ? "debug" : "release") + ".fat.a";
-
-	print_line("Static library: " + library_to_use);
+	print_line("Static library to link: " + library_to_use);
 	String pkg_name = p_preset->get("application/name");
 	if (pkg_name == "") {
 		pkg_name = String(ProjectSettings::get_singleton()->get("application/config/name"));
@@ -946,9 +940,6 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 			pkg_name = "Unnamed";
 		}
 	}
-
-	bool found_library = false;
-	int total_size = 0;
 
 	const String project_file = "godot_ios.xcodeproj/project.pbxproj";
 	Set<String> files_to_parse;
@@ -991,6 +982,8 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	add_module_code(p_preset, config_data, "camera", "F9B95E6E2391205500AF0001", "F9C95E812391205C00BF0001");
 
 	//export rest of the files
+	bool found_library = false;
+	int total_size = 0;
 	int ret = unzGoToFirstFile(src_pkg_zip);
 	Vector<uint8_t> project_file_data;
 	while (ret == UNZ_OK) {
@@ -1055,7 +1048,6 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 
 		if (data.size() > 0) {
 			file = file.replace("godot_ios", binary_name);
-
 			print_line("ADDING: " + file + " size: " + itos(data.size()));
 			total_size += data.size();
 
@@ -1121,7 +1113,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	if (err)
 		return err;
 
-	print_line("Exporting additional assets");
+	print_line("Exporting additional assets to destination: " + dest_dir);
 	Vector<IOSExportAsset> assets;
 	_export_additional_assets(dest_dir + binary_name, libraries, assets);
 	_add_assets_to_project(p_preset, project_file_data, assets);
@@ -1130,7 +1122,7 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	if (!f) {
 		ERR_PRINTS("Can't write '" + project_file_name + "'.");
 		return ERR_CANT_CREATE;
-	};
+	}
 	f->store_buffer(project_file_data.ptr(), project_file_data.size());
 	f->close();
 	memdelete(f);
@@ -1190,32 +1182,30 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 
 bool EditorExportPlatformIOS::can_export(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates) const {
 
-	String err;
-	r_missing_templates = find_export_template("iphone.zip") == String();
-
+	r_missing_templates = !exists_export_template("iphone.zip", NULL);
 	if (p_preset->get("custom_package/debug") != "") {
 		if (FileAccess::exists(p_preset->get("custom_package/debug"))) {
 			r_missing_templates = false;
-		} else {
-			err += TTR("Custom debug template not found.") + "\n";
 		}
 	}
-
 	if (p_preset->get("custom_package/release") != "") {
 		if (FileAccess::exists(p_preset->get("custom_package/release"))) {
 			r_missing_templates = false;
-		} else {
-			err += TTR("Custom release template not found.") + "\n";
 		}
+	}
+
+	String err;
+	if (r_missing_templates) {
+		err += TTR("Missing release template. Either download the official templates or specify a debug or release template path.") + "\n";
 	}
 
 	if (p_preset->get("application/app_store_team_id") == "") {
 		err += TTR("App Store Team ID not specified - cannot configure the project.") + "\n";
 	}
 
-	String pn_err;
-	if (!is_package_name_valid(p_preset->get("application/identifier"), &pn_err)) {
-		err += TTR("Invalid Identifier: ") + pn_err + "\n";
+	String name_err;
+	if (!is_package_name_valid(p_preset->get("application/identifier"), &name_err)) {
+		err += TTR("Invalid Identifier: ") + name_err + "\n";
 	}
 
 	String etc_error = test_etc2();
