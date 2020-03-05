@@ -1002,6 +1002,28 @@ Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_p
 	if (da) {
 		String current_dir = da->get_current_dir();
 
+		List<String> existing_dirs;
+		List<String> existing_files;
+
+		da->list_dir_begin();
+		String n = da->get_next();
+		while (n != String()) {
+
+			if (n != "." && n != "..") {
+
+				if (da->current_is_dir())
+					existing_dirs.push_back(n);
+				else
+					existing_files.push_back(n);
+			}
+
+			n = da->get_next();
+		}
+		da->list_dir_end();
+		if (existing_dirs.size() > 0 || existing_files.size() > 0) {
+			return ERR_ALREADY_EXISTS;
+		}
+
 		// remove leftovers from last export so they don't interfere
 		// in case some files are no longer needed
 		if (da->change_dir(dest_dir + binary_name + ".xcodeproj") == OK) {
